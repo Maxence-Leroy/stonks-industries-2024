@@ -15,12 +15,17 @@ if __name__ == '__main__':
         dsrdtr = False,
         write_timeout = 1.0
     )
-    speed = 0
-    while speed != -1:
-        speed = int(input("Vitesse"))
-        if speed != -1:
-            ser.write(f'{speed}\n'.encode('utf-8'))
-            ser.flush()
+    res = ""
+    while res != "q":
+        res = ser.read_until(b"\n").decode()
+        print(res)
+        
+    # speed = 0
+    # while speed != -1:
+    #     speed = int(input("Vitesse"))
+    #     if speed != -1:
+    #         ser.write(f'{speed}\n'.encode('utf-8'))
+    #         ser.flush()
     ser.close()
     print("Done")
 #     chip = gpiod.chip("gpiochip1")
