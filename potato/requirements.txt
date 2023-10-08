@@ -1,0 +1,2 @@
+gpiod==1.5.4
+pyserial==3.5
