@@ -6,6 +6,7 @@ import time
 from src.constants import MATCH_TIME
 from src.robot_actuator import RobotBinaryActuator
 from src.location import Coordinates
+from src.logging import logging_debug
 class Robot:
     start_time: float
     is_moving: bool
@@ -41,6 +42,7 @@ class Robot:
     def read_serial(self):
         while self.start_time == 0 or self.get_current_time() <= MATCH_TIME:
             res = self.stepper_motors.read_until(b"\n").decode()
+            logging_debug(res)
             if res == "":
                 # Proably timeout
                 pass
@@ -51,6 +53,7 @@ class Robot:
                 x = float(coordinates[0])
                 y = float(coordinates[1])
                 theta = float(coordinates[2])
+                logging_debug(f"Current robot position {x},{y},{theta}")
                 self.current_location = Coordinates(x, y, theta)
 
     def stop(self):

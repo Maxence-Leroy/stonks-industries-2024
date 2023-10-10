@@ -3,10 +3,9 @@ from typing import Optional, Self
 from collections.abc import Callable, Awaitable
 
 from src.location import Location
+from src.logging import logging_info, logging_warning
 from src.singletons import robot
 from src.robot_actuator import RobotBinaryActuator
-
-debug_actions = True
 
 class Action:
     execute: Optional[Callable[[Self], Awaitable[bool]]] = None
@@ -23,7 +22,8 @@ class Action:
 
     def _has_no_condition(self) -> bool:
         true_lambda = lambda: True
-        return true_lambda.__code__.co_code == self.can_be_executed.__code__.co_code
+        return (true_lambda.__code__.co_consts == self.can_be_executed.__code__.co_consts and 
+            true_lambda.__code__.co_code == self.can_be_executed.__code__.co_code)
     
     def __str__(self) -> str:
         return f"(timeout {self.timer_limit} conditions {"none" if self._has_no_condition() else "some"})"
@@ -37,15 +37,13 @@ class Action:
     async def exec(self) -> bool:
         action_short = self.__str__().split("\n")[0]
         if not self.can_be_executed():
-            if debug_actions:
-                print(f"Unable to execute {action_short}")
+            logging_warning(f"Unable to execute {action_short}")
             return False
 
         timeout = self.timeout()
 
         if timeout is not None and timeout < 0:
-            if debug_actions:
-                print(f"Timeout before starting {action_short}")
+            logging_warning(f"Timeout before starting {action_short}")
             return False
 
         result: None | bool = None
@@ -53,21 +51,18 @@ class Action:
             result = True
         else:
             try:
-                if debug_actions:
-                    print(f"Start {action_short}")
+                logging_info(f"Start {action_short}")
                 result = await asyncio.wait_for(self.execute(), timeout=timeout)
             except asyncio.TimeoutError:
-                if debug_actions:
-                    print(f"Unable to finish ${action_short}")
+                logging_warning(f"Unable to finish ${action_short}")
                 robot.stop()
                 return False
 
         if not result:
-            if debug_actions:
-                print(f"Action failed {action_short}")
+            logging_warning(f"Action failed {action_short}")
             return False
 
-        print(f"Apply state change {action_short}")
+        logging_info(f"Apply state change {action_short}")
         self.affect_state()
         return True
 
