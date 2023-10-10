@@ -157,7 +157,7 @@ class Switch(Action):
         if self.on:
             self.actuator.switch_on()
         else:
-            self.actuator.switch_off
+            self.actuator.switch_off()
 
         return True
 
