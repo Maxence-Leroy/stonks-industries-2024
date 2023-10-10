@@ -42,13 +42,15 @@ class Robot:
     def read_serial(self):
         while self.start_time == 0 or self.get_current_time() <= MATCH_TIME:
             res = self.stepper_motors.read_until(b"\n").decode()
+            res = res.strip("\n")
             logging_debug(res)
             if res == "":
                 # Proably timeout
                 pass
-            if res == "Done":
+            elif res == "DONE":
                 self.is_moving = False
             else:
+                res = res[1:-1] # Remove parenthesis
                 coordinates = res.split(";")
                 x = float(coordinates[0])
                 y = float(coordinates[1])
