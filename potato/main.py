@@ -22,6 +22,8 @@ def main():
 
     print(strategy)
 
+    time.sleep(2.0)
+
     robot.start_time = time.time()
     success = asyncio.run(strategy.exec())
     print(f"Success {success}")

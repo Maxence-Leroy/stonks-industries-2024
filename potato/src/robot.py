@@ -1,5 +1,6 @@
 import asyncio
 import serial
+import threading
 import time
 
 from src.robot_actuator import RobotBinaryActuator
@@ -30,14 +31,8 @@ class Robot:
             chip="gpiochip1", line=15, name="Ethernet LED"
         )
 
-        loop = asyncio.get_event_loop()
-        loop.add_reader(self.stepper_motors, self.read_serial)
-        try:
-            loop.run_forever()
-        except Exception:
-            pass
-        finally:
-            loop.close()
+        thread = threading.Thread(target=self.read_serial)
+        thread.start()
 
     def get_current_time(self) -> float:
         return time.time() - self.start_time
