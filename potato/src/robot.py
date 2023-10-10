@@ -4,8 +4,6 @@ import time
 
 from src.robot_actuator import RobotBinaryActuator
 from src.location import Coordinates
-
-
 class Robot:
     start_time: float
     is_moving: bool
@@ -15,7 +13,7 @@ class Robot:
         self.stepper_motors = serial.Serial(
             port="/dev/ttyAML6",
             baudrate=115200,
-            timeout=1,
+            timeout=100,
             bytesize=serial.EIGHTBITS,
             parity=serial.PARITY_NONE,
             stopbits=serial.STOPBITS_ONE,
@@ -32,7 +30,14 @@ class Robot:
             chip="gpiochip1", line=15, name="Ethernet LED"
         )
 
-        asyncio.run(self.read_serial())
+        loop = asyncio.get_event_loop()
+        loop.add_reader(self.stepper_motors, self.read_serial)
+        try:
+            loop.run_forever()
+        except Exception:
+            pass
+        finally:
+            loop.close()
 
     def get_current_time(self) -> float:
         return time.time() - self.start_time
