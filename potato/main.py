@@ -1,3 +1,6 @@
+import asyncio
+import time
+
 from src.action import ActionsSequence, Move, Switch, Wait
 from src.location import Coordinates
 from src.singletons import robot
@@ -19,7 +22,9 @@ def main():
 
     print(strategy)
 
-    robot.execute_strategy(strategy)
+    robot.start_time = time.time()
+    success = asyncio.run(strategy.exec())
+    print(f"Success {success}")
 
 
 if __name__ == "__main__":

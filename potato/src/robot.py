@@ -3,7 +3,6 @@ import serial
 import time
 
 from src.robot_actuator import RobotBinaryActuator
-from src.action import Action
 from src.location import Coordinates
 
 
@@ -33,10 +32,7 @@ class Robot:
             chip="gpiochip1", line=15, name="Ethernet LED"
         )
 
-    def execute_strategy(self, strategy: Action) -> None:
-        self.start_time = time.time()
-        success = asyncio.run(strategy.exec())
-        print(f"Success {success}")
+        asyncio.run(self.read_serial())
 
     def get_current_time(self) -> float:
         return time.time() - self.start_time
