@@ -54,7 +54,7 @@ class Action:
             try:
                 if debug_actions:
                     print(f"Start {action_short}")
-                result = await asyncio.wait_for(self.execute(self), timeout=timeout)
+                result = await asyncio.wait_for(self.execute(), timeout=timeout)
             except asyncio.TimeoutError:
                 if debug_actions:
                     print(f"Unable to finish ${action_short}")

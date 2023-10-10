@@ -2,13 +2,14 @@ import asyncio
 import time
 
 from src.action import ActionsSequence, Move, Switch, Wait
+from src.constants import MATCH_TIME
 from src.location import Coordinates
 from src.singletons import robot
 
 
 def main():
     strategy = ActionsSequence(
-        timer_limit=100,
+        timer_limit=MATCH_TIME,
         actions=[
             Move(
                 timer_limit=80,

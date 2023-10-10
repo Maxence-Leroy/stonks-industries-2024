@@ -3,6 +3,7 @@ import serial
 import threading
 import time
 
+from src.constants import MATCH_TIME
 from src.robot_actuator import RobotBinaryActuator
 from src.location import Coordinates
 class Robot:
@@ -14,7 +15,7 @@ class Robot:
         self.stepper_motors = serial.Serial(
             port="/dev/ttyAML6",
             baudrate=115200,
-            timeout=100,
+            timeout=MATCH_TIME,
             bytesize=serial.EIGHTBITS,
             parity=serial.PARITY_NONE,
             stopbits=serial.STOPBITS_ONE,
@@ -38,7 +39,7 @@ class Robot:
         return time.time() - self.start_time
 
     def read_serial(self):
-        while self.start_time == 0 or self.get_current_time() <= 100:
+        while self.start_time == 0 or self.get_current_time() <= MATCH_TIME:
             res = self.stepper_motors.read_until(b"\n").decode()
             if res == "Done":
                 self.is_moving = False
