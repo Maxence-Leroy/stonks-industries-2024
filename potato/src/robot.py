@@ -41,6 +41,9 @@ class Robot:
     def read_serial(self):
         while self.start_time == 0 or self.get_current_time() <= MATCH_TIME:
             res = self.stepper_motors.read_until(b"\n").decode()
+            if res == "":
+                # Proably timeout
+                pass
             if res == "Done":
                 self.is_moving = False
             else:

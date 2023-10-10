@@ -45,9 +45,10 @@ class Action:
 
         if timeout is not None and timeout < 0:
             if debug_actions:
-                print(f"Timeout before starting ${action_short}")
+                print(f"Timeout before starting {action_short}")
             return False
 
+        result: None | bool = None
         if self.execute is None:
             result = True
         else:
