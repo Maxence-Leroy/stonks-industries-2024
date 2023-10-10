@@ -26,7 +26,7 @@ class Action:
         return true_lambda.__code__.co_code == self.can_be_executed.__code__.co_code
     
     def __str__(self) -> str:
-        return f"(timeout {self.timeout} conditions {"none" if self._has_no_condition() else "some"})"
+        return f"(timeout {self.timer_limit} conditions {"none" if self._has_no_condition() else "some"})"
 
     def timeout(self) -> float | None:
         if self.timer_limit is None:
