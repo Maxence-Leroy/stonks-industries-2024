@@ -37,7 +37,7 @@ class Robot:
     def get_current_time(self) -> float:
         return time.time() - self.start_time
 
-    async def read_serial(self):
+    def read_serial(self):
         while self.start_time == 0 or self.get_current_time() <= 100:
             res = self.stepper_motors.read_until(b"\n").decode()
             if res == "Done":
