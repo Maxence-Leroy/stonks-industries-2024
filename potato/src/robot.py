@@ -58,18 +58,19 @@ class Robot:
                 logging_debug(f"Current robot position {x},{y},{theta}")
                 self.current_location = Coordinates(x, y, theta)
 
-    def stop(self):
+    def stop_moving(self):
         instruction = "STOP\n"
         self.stepper_motors.write(instruction.encode("utf-8"))
+        self.is_moving = False
         self.stepper_motors.flush()
 
     async def go_to(
         self, x: float, y: float, theta: float, timer_limit: float | None
-    ) -> bool:
+    ) -> None:
         instruction = f"({x};{y};{theta})\n"
         self.stepper_motors.write(instruction.encode("utf-8"))
         self.stepper_motors.flush()
         self.is_moving = True
         while self.is_moving:
             await asyncio.sleep(0.2)
-        return True
+        return
