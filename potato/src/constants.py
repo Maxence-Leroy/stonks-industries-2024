@@ -1,1 +1,1 @@
-MATCH_TIME = 100
+MATCH_TIME: int = 100 # Duration of a match

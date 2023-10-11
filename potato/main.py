@@ -20,6 +20,7 @@ def main():
             Wait(time=2.0),
             Switch(actuator=robot.led_ethernet, on=False),
         ],
+        allows_fail=True
     )
 
     logging_info(str(strategy))

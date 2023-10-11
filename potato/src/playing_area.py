@@ -1,4 +1,8 @@
 class PlayingArea:
+    """Class represenging the playing area.
+    
+    TODO: Add state
+    """
     def get_next_pot(self) -> tuple[float, float, float]:
         return (0, 0, 0)
 

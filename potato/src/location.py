@@ -1,15 +1,34 @@
+from abc import ABC, abstractmethod
 from enum import Enum
 
-from src.playing_area import PlayingArea
+from src.singletons import playing_area
 
 
-class Location:
+class Location(ABC):
+    """Abstract class for a location. Has a method `getLocation` that will be called when the move location is starting"""
+
+    @abstractmethod
     def getLocation(self) -> tuple[float, float, float]:
         raise NotImplementedError()
 
 
 class Coordinates(Location):
+    """Location with "absolute" coordinates. They will be converted according to the side of the playing area."""
+
     def __init__(self, x: float, y: float, theta: float) -> None:
+        """
+        Parameters
+        ----------
+        x: float
+            X position in mm
+
+        y: float
+            Y position in mm
+
+        theta: float
+            Angle of the robot in radians
+        """
+
         super().__init__()
         self.x = x
         self.y = y
@@ -22,17 +41,41 @@ class Coordinates(Location):
         return (self.x, self.y, self.theta)
 
 
-ImportantLocation = Enum(
-    "ImportantLocation",
-    ["POT", "PLANT", "PLANTER", "SOLAR_PANNEL_BEGIN", "SOLAR_PANNEL_END", "END_AREA"],
-)
+class ImportantLocation(Enum):
+    """
+    Enum of areas with a name. For some of them, they are multiple places on the playing area.
+    The best available will be chosen depending on the state of the playing area
 
+    POT: metal plot for the plant
+    PLANT: plants
+    PLANTER: place to put the plants once they are in pots
+    SOLAR_PANNEL_BEGIN: one extremity of solar pannels (excluding opponents' reserved ones)
+    SOLAR_PANNEL_END : other extremity of solar pannels (excluding opponents' reserved ones)
+    END_AREA: one of the area the robot can finish the match
+    """
+
+    POT = 0
+    PLANT = 1
+    PLANTER = 2
+    SOLAR_PANNEL_BEGIN = 3
+    SOLAR_PANNEL_END = 4
+    END_AREA = 5
 
 class BestAvailable(Location):
-    def __init__(self, location: ImportantLocation, playing_area: PlayingArea) -> None:
+    """Location from a place on the playing area. There can be multiple places for the same enum value.
+    It will be converted in coordinates at the begining of the action (and using the right side of the playing area)
+    """
+
+    def __init__(self, location: ImportantLocation) -> None:
+        """
+        Parameters
+        ----------
+        location: ImportantLocation
+            One of the pre-recorded locations
+        """
+                
         super().__init__()
         self.location = location
-        self.playing_area = playing_area
 
     def __str__(self) -> str:
         return f'Next {str(self.location).replace("_", " ").lower()}'
@@ -40,14 +83,14 @@ class BestAvailable(Location):
     def getLocation(self) -> tuple[float, float, float]:
         match self.location:
             case ImportantLocation.POT:
-                return self.playing_area.get_next_pot()
+                return playing_area.get_next_pot()
             case ImportantLocation.PLANT:
-                return self.playing_area.get_next_plant()
+                return playing_area.get_next_plant()
             case ImportantLocation.PLANTER:
-                return self.playing_area.get_next_planter()
+                return playing_area.get_next_planter()
             case ImportantLocation.SOLAR_PANNEL_BEGIN:
-                return self.playing_area.get_solar_pannel_begin()
+                return playing_area.get_solar_pannel_begin()
             case ImportantLocation.SOLAR_PANNEL_END:
-                return self.playing_area.get_solar_pannel_end()
+                return playing_area.get_solar_pannel_end()
             case ImportantLocation.END_AREA:
-                return self.playing_area.get_end_area()
+                return playing_area.get_end_area()
