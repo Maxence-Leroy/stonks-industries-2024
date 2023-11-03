@@ -19,4 +19,6 @@ class PlayingArea:
         return (10, 10, 10)
 
     def get_end_area(self) -> tuple[float, float, float]:
-        return (100, 100, 100)
+    
+
+playing_area = PlayingArea() # Singleton

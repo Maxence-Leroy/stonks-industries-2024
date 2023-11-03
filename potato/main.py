@@ -5,7 +5,7 @@ from src.action import ActionsSequence, Move, Switch, Wait
 from src.constants import MATCH_TIME
 from src.location import Coordinates
 from src.logging import logging_info
-from src.singletons import robot
+from src.robot import robot
 
 
 def main():

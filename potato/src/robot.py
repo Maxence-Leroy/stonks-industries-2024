@@ -106,3 +106,6 @@ class Robot:
         while self.is_moving:
             await asyncio.sleep(0.2)
         return
+
+
+robot = Robot() # Singleton

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 
-from src.singletons import playing_area
+from src.playing_area import playing_area
 
 
 class Location(ABC):
