@@ -57,7 +57,7 @@ class Robot:
         """Read the serail from stepper motors. Will stop at the end of the match"""
         while self.start_time == 0 or self.get_current_time() <= MATCH_TIME:
             res = self.stepper_motors.read()
-            logging_debug(res)
+            logging_debug(f"Serial recieved {res}")
             if res == "":
                 # Proably timeout
                 pass

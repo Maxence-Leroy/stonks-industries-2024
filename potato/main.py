@@ -28,8 +28,8 @@ def main():
     time.sleep(2.0)
 
     robot.start_time = time.time()
-    success = asyncio.run(strategy.exec())
-    logging_info(f"Success {success}")
+    asyncio.run(strategy.exec())
+    logging_info(f"End of strategy")
 
 
 if __name__ == "__main__":

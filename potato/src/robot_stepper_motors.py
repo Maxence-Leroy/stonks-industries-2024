@@ -46,7 +46,7 @@ class SerialStepperMotors(RobotStepperMotors):
 class MockStepperMotors(RobotStepperMotors):
     """Mock class for stepper motors. To be used when executing the strategy without the potato computer"""
     def write(self, text: str) -> None:
-        logging_debug(text)
+        logging_debug(f"Mock serial {text}")
 
     def read(self) -> str:
         res = input("serial input: ")

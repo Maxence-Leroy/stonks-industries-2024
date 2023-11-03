@@ -47,10 +47,10 @@ class MockRobotBinaryActuator(RobotBinaryActuator):
         super().__init__(chip, line, name)
 
     def switch_on(self) -> None:
-        logging_debug(f"Switch on {self}")
+        logging_debug(f"Mock actuator: Switch on {self}")
         
     def switch_off(self) -> None:
-        logging_debug(f"Switch off {self}")
+        logging_debug(f"Mock actuator: Switch off {self}")
 
 def create_robot_binary_actuator(chip: str, line: int, name: Optional[str] = None) -> RobotBinaryActuator:
         """
