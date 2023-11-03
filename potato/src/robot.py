@@ -3,7 +3,7 @@ import threading
 import time
 
 from src.constants import MATCH_TIME
-from src.robot_actuator import RobotBinaryActuator
+from src.robot_actuator import create_robot_binary_actuator
 from src.robot_stepper_motors import create_stepper_motors
 from src.location import Coordinates
 from src.logging import logging_debug
@@ -41,7 +41,7 @@ class Robot:
         self.is_moving = False
         self.start_time = 0
 
-        self.led_ethernet = RobotBinaryActuator(
+        self.led_ethernet = create_robot_binary_actuator(
             chip="gpiochip1", line=15, name="Ethernet LED"
         )
 
