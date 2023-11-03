@@ -1,10 +1,10 @@
 import asyncio
-import serial
 import threading
 import time
 
 from src.constants import MATCH_TIME
 from src.robot_actuator import RobotBinaryActuator
+from src.robot_stepper_motors import create_stepper_motors
 from src.location import Coordinates
 from src.logging import logging_debug
 class Robot:
@@ -24,8 +24,8 @@ class Robot:
         Current location of the robot. 
         The coordinates will be converted depending on the side of the playing area.
 
-    stepper_motors: Serial
-        Serial object reprensenting the UART with the Arduino handling the stepper mottors
+    stepper_motors: RobotStepperMotors
+        Object reprensenting the stepper mottors. Either a real one (with UART to Arduino) or a mock
 
     led_ethernet: RobotBinaryActuator
         Mock up of a binary actuator of the robot.
@@ -36,18 +36,7 @@ class Robot:
     current_location: Coordinates
 
     def __init__(self) -> None:
-        self.stepper_motors = serial.Serial(
-            port="/dev/ttyAML6",
-            baudrate=115200,
-            timeout=MATCH_TIME,
-            bytesize=serial.EIGHTBITS,
-            parity=serial.PARITY_NONE,
-            stopbits=serial.STOPBITS_ONE,
-            xonxoff=False,
-            rtscts=False,
-            dsrdtr=False,
-            write_timeout=1.0,
-        )
+        self.stepper_motors = create_stepper_motors()
 
         self.is_moving = False
         self.start_time = 0
@@ -67,8 +56,7 @@ class Robot:
     def read_serial(self):
         """Read the serail from stepper motors. Will stop at the end of the match"""
         while self.start_time == 0 or self.get_current_time() <= MATCH_TIME:
-            res = self.stepper_motors.read_until(b"\n").decode()
-            res = res.strip("\n")
+            res = self.stepper_motors.read()
             logging_debug(res)
             if res == "":
                 # Proably timeout
@@ -90,9 +78,8 @@ class Robot:
         """
         
         instruction = "STOP\n"
-        self.stepper_motors.write(instruction.encode("utf-8"))
+        self.stepper_motors.write(instruction)
         self.is_moving = False
-        self.stepper_motors.flush()
 
     async def go_to(
         self, x: float, y: float, theta: float
@@ -100,8 +87,7 @@ class Robot:
         """Function to move to specific coordinates. Returns when the Arduino has sent "DONE"."""
 
         instruction = f"({x};{y};{theta})\n"
-        self.stepper_motors.write(instruction.encode("utf-8"))
-        self.stepper_motors.flush()
+        self.stepper_motors.write(instruction)
         self.is_moving = True
         while self.is_moving:
             await asyncio.sleep(0.2)
