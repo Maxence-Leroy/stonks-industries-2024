@@ -212,8 +212,9 @@ class ActionsSequence(Action):
     
     def __str__(self) -> str:
         string = f"Sequence of actions (allows fail {self.allows_fail}) {super().__str__()})\n"
-        for action in self.actions:
-            string += f"  {str(action)}\n"
+        actions_string = "\n".join([str(action) for action in self.actions])
+        for action_line in actions_string.split("\n"):
+            string += f"  {action_line}\n"
         return string
 
     async def execute_multiple_actions(self) -> None:
