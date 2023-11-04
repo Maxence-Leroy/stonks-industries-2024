@@ -1,7 +1,7 @@
 import asyncio
 import time
 
-from src.action import ActionsSequence, Move, Switch, Wait
+from src.action import ActionsInParallel, ActionsSequence, Move, Switch, Wait
 from src.constants import MATCH_TIME
 from src.location import Coordinates
 from src.logging import logging_info
@@ -12,13 +12,27 @@ def main():
     strategy = ActionsSequence(
         timer_limit=MATCH_TIME,
         actions=[
-            Move(
-                timer_limit=80,
-                destination=Coordinates(1, 1, 0),
+            ActionsInParallel(
+                actions = [
+                    Move(
+                        timer_limit=80,
+                        destination=Coordinates(1, 1, 0),
+                    ),
+                    Switch(actuator=robot.led_ethernet, on=True),
+                ],
+                allows_fail=True
             ),
-            Switch(actuator=robot.led_ethernet, on=True),
-            Wait(time=2.0),
-            Switch(actuator=robot.led_ethernet, on=False),
+            ActionsInParallel(
+                actions = [
+                    Move(
+                        timer_limit = 5,
+                        destination= Coordinates(2,2,0)
+                    ),
+                    Wait(time=5.0),
+                    Switch(actuator=robot.led_ethernet, on=False)
+                ],
+                allows_fail=True
+            )
         ],
         allows_fail=True
     )

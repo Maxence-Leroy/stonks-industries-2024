@@ -113,7 +113,7 @@ class Action:
             true_lambda.__code__.co_code == self.can_be_executed.__code__.co_code)
     
     def __str__(self) -> str:
-        return f"(timeout {self.timer_limit} conditions {"none" if self._has_no_condition() else "some"})"
+        return f"(status {self.status.name} timeout {self.timer_limit} conditions {"none" if self._has_no_condition() else "some"})"
 
     def _timeout(self) -> float:
         """Retrieve robot time and timer_limit. If result < 0, the action should be timed out."""
@@ -230,6 +230,60 @@ class ActionsSequence(Action):
         return
 
     execute: Callable[[Self], Awaitable[None]] = execute_multiple_actions
+
+
+class ActionsInParallel(Action):
+    """Group of actions. They are launched at the same time all together. 
+    If one fails, the execution either continues for the other ones or stops and the exception is transmited.
+    """
+    def __init__(
+        self,
+        actions: list[Action],
+        allows_fail: bool,
+        timer_limit: float = MATCH_TIME,
+        can_be_executed: Callable[[], bool] = lambda: True,
+        affect_state: Callable[[], None] = lambda: None,
+    ):
+        """
+        Parameters
+        ----------
+        actions: list[Action]
+            List of all actions
+
+        allows_fail: bool
+            If true, when one action fails, the other ones are executed. Otherwise, an exception is raised.
+
+        timer_limit: float
+            Time limit to do the action (time counted since the begining of the match), `MATCH_TIME` by default
+
+        can_be_executed: Callable[[], bool]
+            Function where we usually check the state of the robot and the playing area to know if the action is worth doing now,
+            `True` by default
+
+        affect_state: Callable[[], None]
+            Function executed after the action to indicate the state change of the robot and the playing area, `None` by default
+        """
+
+        super().__init__(timer_limit, can_be_executed, affect_state)
+        self.actions = actions
+        self.allows_fail = allows_fail
+    
+    def __str__(self) -> str:
+        string = f"Actions in parallel (allows fail {self.allows_fail}) {super().__str__()})\n"
+        actions_string = "\n".join([str(action) for action in self.actions])
+        for action_line in actions_string.split("\n"):
+            string += f"  {action_line}\n"
+        return string
+
+    async def execute_multiple_actions(self) -> None:
+        try:
+            coroutines = [action.exec() for action in self.actions]
+            await asyncio.gather(*coroutines, return_exceptions=self.allows_fail)
+        except Exception as ex:
+            raise ex
+
+    execute: Callable[[Self], Awaitable[None]] = execute_multiple_actions
+
 
 class Move(Action):
     """Action to move the position of the robot. The destination can either be an absolute location
