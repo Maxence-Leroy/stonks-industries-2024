@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-String receivedString;
+int SPEED = 3000;
 
 void setup()
 
@@ -16,27 +16,18 @@ void setup()
 
   TCCR1A = _BV(COM1A0) | _BV(COM1B1) | _BV(WGM10);
   TCCR1B = _BV(WGM13) | _BV(CS11);
-  OCR1A = 255 * 2 * 2 * 2 * 2;
+  OCR1A = SPEED;
   OCR1B = 100;
 
-  pinMode(2, OUTPUT); // OC3B
-  pinMode(5, OUTPUT); // OC3A
-  TCCR3A = _BV(COM3A0) | _BV(COM3B1) | _BV(WGM30);
-  TCCR3B = _BV(WGM33) | _BV(CS32) | _BV(CS30);
-  OCR3A = 255 * 2 * 2 * 2 * 2;
-  OCR3B = 255 * 2;
-
-  Serial.begin(115200, SERIAL_8N1);
+  pinMode(7, OUTPUT); // OC4B
+  pinMode(6, OUTPUT); // OC4A
+  TCCR4A = _BV(COM1A0) | _BV(COM1B1) | _BV(WGM10);
+  TCCR4B = _BV(WGM13) | _BV(CS11);
+  OCR4A = SPEED;
+  OCR4B = 100;
 }
 
 void loop()
-
 {
-  if (Serial.available() > 0){
-    receivedString = Serial.readStringUntil('\n');
-    unsigned recievedNumber = receivedString.toInt();
-    OCR1A = recievedNumber;
-    Serial.println(recievedNumber);
-  }
-  digitalWrite(23, HIGH);
+
 }
