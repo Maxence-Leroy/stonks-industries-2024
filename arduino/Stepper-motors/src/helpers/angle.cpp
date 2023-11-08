@@ -59,5 +59,5 @@ Angle Angle::operator+(Angle iAngle) {return Angle(mAngle + iAngle.mAngle);}
 Angle Angle::operator-(Angle iAngle) {return Angle(mAngle - iAngle.mAngle);}
 Angle Angle::operator+(double iAngle) {return Angle(mAngle + iAngle);}
 Angle Angle::operator-(double iAngle) {return Angle(mAngle - iAngle);}
-Angle Angle::operator=(Angle iAngle) {mAngle=iAngle.mAngle; adjust();}
-Angle Angle::operator=(double iAngle) {mAngle=iAngle; adjust();}
+void Angle::operator=(Angle iAngle) {mAngle=iAngle.mAngle; adjust();}
+void Angle::operator=(double iAngle) {mAngle=iAngle; adjust();}

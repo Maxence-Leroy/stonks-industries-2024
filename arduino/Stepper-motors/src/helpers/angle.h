@@ -24,8 +24,8 @@ class Angle
     Angle operator-(double iAngle);
     Angle operator/(double a);
     Angle& operator/=(double a);
-    Angle operator=(const Angle iAngle);
-    Angle operator=(double iAngle);
+    void operator=(const Angle iAngle);
+    void operator=(double iAngle);
     bool operator<(Angle b);
     bool operator>(Angle b);
     bool operator<=(Angle b);
