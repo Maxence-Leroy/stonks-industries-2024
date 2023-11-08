@@ -10,4 +10,8 @@
 #define TRIGO_DIRECTION 1
 #define A_TRIGO_DIRECTION -1
 
+#define D 0
+#define P 1
+#define I 2
+
 #endif
