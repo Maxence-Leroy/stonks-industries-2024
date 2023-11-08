@@ -1,0 +1,16 @@
+#ifndef ROBOT_CONFIG_H
+#define ROBOT_CONFIG_H
+
+#define LEFT_SIDE_PIN 8
+#define RIGHT_SIDE_PIN 9
+#define LEFT_SPEED_PIN 7
+#define RIGHT_SPEED_PIN 12
+
+#define ZERO_SPEED 0
+#define MAX_SPEED 20000
+#define MIN_SPEED 500
+#define DEFAULT_B_VALUE 100
+
+#define I2C_ADDRESS 0x68
+
+#endif

@@ -1,8 +1,7 @@
 #include <Wire.h>
 
+#include "../helpers/robotConfig.h"
 #include "accelero.h"
-
-const int I2C_ADDRESS = 0x68;
 
 void setupAccelero() {
     Wire.begin();

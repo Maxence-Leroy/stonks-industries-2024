@@ -1,16 +1,7 @@
 #include <Arduino.h>
 
+#include "../helpers/robotConfig.h"
 #include "stepperMotors.h"
-
-const uint8_t LEFT_SIDE_PIN = 8;
-const uint8_t RIGHT_SIDE_PIN = 9;
-const uint8_t LEFT_SPEED_PIN = 7;
-const uint8_t RIGHT_SPEED_PIN = 12;
-
-const uint16_t ZERO_SPEED = 0;
-const uint16_t MAX_SPEED = 20000;
-const uint16_t MIN_SPEED = 500;
-const uint16_t DEFAULT_B_VALUE = 100;
 
 void setupMotors() {
     pinMode(LEFT_SIDE_PIN, OUTPUT);
