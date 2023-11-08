@@ -20,39 +20,49 @@ void setupMotors() {
 
     TCCR1A = _BV(COM1A0) | _BV(COM1B1) | _BV(WGM10);
     TCCR1B = _BV(WGM13) | _BV(CS10);
-    OCR1A = ZERO_SPEED;
+    OCR1A = ZERO_PACE;
     OCR1B = DEFAULT_B_VALUE;
 
     TCCR4A = _BV(COM4A0) | _BV(COM4B1) | _BV(WGM40);
     TCCR4B = _BV(WGM43) | _BV(CS40);
-    OCR4A = ZERO_SPEED;
+    OCR4A = ZERO_PACE;
     OCR4B = DEFAULT_B_VALUE;
 }
 
-void setLeftMotorSpeed(int32_t speed) {
-    uint16_t unsignedSpeed;
-    if (speed < 0) {
-        unsignedSpeed = (uint16_t) -speed;
-        digitalWrite(LEFT_SIDE_PIN, HIGH);
+int32_t speedToPace(double speed) {
+    if(speed == 0) {
+        return ZERO_PACE;
     } else {
-        unsignedSpeed = (uint16_t) speed;
-        digitalWrite(LEFT_SIDE_PIN, LOW);
+        return (int32_t) (1/speed);
     }
-    unsignedSpeed = unsignedSpeed < MIN_SPEED ? MIN_SPEED : unsignedSpeed;
-    unsignedSpeed = unsignedSpeed > MAX_SPEED ? MAX_SPEED : unsignedSpeed;
-    OCR4A = unsignedSpeed;
 }
 
-void setRightMotorSpeed(int32_t speed) {
-    uint16_t unsignedSpeed;
-    if (speed < 0) {
-        unsignedSpeed = (uint16_t) -speed;
+void setLeftMotorSpeed(double speed) {
+    int32_t pace = speedToPace(speed);
+    uint16_t unsignedPace;
+    if (pace < 0) {
+        unsignedPace = (uint16_t) -unsignedPace;
+        digitalWrite(LEFT_SIDE_PIN, HIGH);
+    } else {
+        unsignedPace = (uint16_t) pace;
+        digitalWrite(LEFT_SIDE_PIN, LOW);
+    }
+    unsignedPace = unsignedPace < MIN_PACE ? MIN_PACE : unsignedPace;
+    unsignedPace = unsignedPace > MAX_PACE ? MAX_PACE : unsignedPace;
+    OCR4A = unsignedPace;
+}
+
+void setRightMotorSpeed(double speed) {
+    int32_t pace = speedToPace(speed);
+    uint16_t unsignedPace;
+    if (pace < 0) {
+        unsignedPace = (uint16_t) -unsignedPace;
         digitalWrite(RIGHT_SIDE_PIN, HIGH);
     } else {
-        unsignedSpeed = (uint16_t) speed;
+        unsignedPace = (uint16_t) pace;
         digitalWrite(RIGHT_SIDE_PIN, LOW);
     }
-    unsignedSpeed = unsignedSpeed < MIN_SPEED ? MIN_SPEED : unsignedSpeed;
-    unsignedSpeed = unsignedSpeed > MAX_SPEED ? MAX_SPEED : unsignedSpeed;
-    OCR1A = unsignedSpeed;
+    unsignedPace = unsignedPace < MIN_PACE ? MIN_PACE : unsignedPace;
+    unsignedPace = unsignedPace > MAX_PACE ? MAX_PACE : unsignedPace;
+    OCR1A = unsignedPace;
 }
