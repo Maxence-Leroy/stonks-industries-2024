@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
-#include "accelero.h"
-#include "stepperMotors.h"
+#include "readingComponents/accelero.h"
+#include "movingComponents/stepperMotors.h"
 
 void setup()
 
