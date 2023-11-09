@@ -29,11 +29,18 @@ void setupMotors() {
     OCR4B = DEFAULT_B_VALUE;
 }
 
+void restartMotors(){
+    TCCR1B = _BV(WGM13) | _BV(CS10);
+    TCCR4B = _BV(WGM43) | _BV(CS40);
+}
+
 int32_t speedToPace(double speed) {
     if(speed == 0) {
+        stopMotors();
         return ZERO_PACE;
     } else {
-        return (int32_t) (1/speed);
+        restartMotors();
+        return (int32_t) ((1/speed + 0.00008823682173)/0.000003139047066);
     }
 }
 
@@ -65,4 +72,9 @@ void setRightMotorSpeed(double speed) {
     unsignedPace = unsignedPace < MIN_PACE ? MIN_PACE : unsignedPace;
     unsignedPace = unsignedPace > MAX_PACE ? MAX_PACE : unsignedPace;
     OCR1A = unsignedPace;
+}
+
+void stopMotors() {
+    TCCR1B = _BV(WGM13);
+    TCCR4B = _BV(WGM43);
 }
