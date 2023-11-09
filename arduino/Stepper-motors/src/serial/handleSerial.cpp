@@ -3,9 +3,8 @@
 #include "../movingComponents/enslavement.h"
 #include "../movingComponents/pathQueue.h"
 
-String* extractCoordinates(String command) {
+void extractCoordinates(String command, String coordinates[3]) {
     int coordinatesCount = 0;
-    String coordinates[3];
     command.replace('(', ' ');
     command.replace(')', ' ');
     command.trim();
@@ -23,20 +22,20 @@ String* extractCoordinates(String command) {
             command = command.substring(index+1);
         }
     }
-    return coordinates;
 }
 
 void handleInitialPosition(String command)
 {
     command = command.substring(5); // Starts after "INIT "
-
-    String* coordinates = extractCoordinates(command);
+    String coordinates[3];
+    extractCoordinates(command, coordinates);
     setInitialPosition(coordinates[0].toDouble(), coordinates[1].toDouble(), Angle(coordinates[2].toDouble()));
 }
 
 void handleMoveCommand(String command)
 {
-    String* coordinates = extractCoordinates(command);
+    String coordinates[3];
+    extractCoordinates(command, coordinates);
     addDestination(coordinates[0].toDouble(), coordinates[1].toDouble(), Angle(coordinates[2].toDouble()));
 }
 
