@@ -1,4 +1,4 @@
-from datetime import datetime
+import time
 from typing import Callable
 
 debug = True
@@ -6,9 +6,18 @@ info = True
 warning = True
 error = True
 
+start_match = 0
+
+def start():
+    global start_match
+    start_match = time.time()
+
 def log_with_date(log: str):
-    now = datetime.now()
-    print_log(f'[{now.hour}:{now.minute}:{now.second}:{now.microsecond}] {log}')
+    game_time = 0
+    if start_match != 0:
+        game_time = time.time() - start_match
+
+    print_log(f'[{game_time}] {log}')
 
 def print_log(log: str):
     print(log)
