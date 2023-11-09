@@ -8,7 +8,7 @@
 
 double currentX = 0, currentY = 0;
 Angle currentTheta = Angle(0);
-long int incrementalCounterLeft = 0, incrementalCounterRight = 0;
+int32_t incrementalCounterLeft = 0, incrementalCounterRight = 0;
 long int previousTime = 0;
 
 double rotationError[3] = {0, 0, 0};
@@ -35,8 +35,8 @@ void setCurrentPath(Path* path) {
 }
 
 void enslave(long time) {
-    long int newIncrementalLeft = getIncrementalEncoderLeftValue();
-    long int newIncrementalRight = getIncrementalEncoderRightValue(); 
+    int32_t newIncrementalLeft = getIncrementalEncoderLeftValue();
+    int32_t newIncrementalRight = getIncrementalEncoderRightValue(); 
 
     currentX += cos(currentTheta.toDouble())*(newIncrementalRight+newIncrementalLeft-incrementalCounterLeft-incrementalCounterRight)*K_INC/2;
     currentY += sin(currentTheta.toDouble())*(newIncrementalRight+newIncrementalLeft-incrementalCounterLeft-incrementalCounterRight)*K_INC/2;
@@ -67,7 +67,7 @@ void enslave(long time) {
     if(fabs(rotationError[I])>KI_ROT_SAT)
         rotationError[I]=KI_ROT_SAT*fabs(rotationError[I])/rotationError[I];
 
-    // Then we eslave
+    // Then we enslave
     int orderR = rotationError[P] * P_ROTATION_ERROR_COEFFICIENT
                 + rotationError[I] * I_ROTATION_ERROR_COEFFICIENT
                 + rotationError[D] * D_ROTATION_ERROR_COEFFICIENT;
@@ -79,7 +79,7 @@ void enslave(long time) {
     if(!currentPath->isGoingBackwards())
     {
         setLeftMotorSpeed(+orderP - orderR);
-        setRightMotorSpeed(+orderP - orderR);
+        setRightMotorSpeed(+orderP + orderR);
     }
     else
     {

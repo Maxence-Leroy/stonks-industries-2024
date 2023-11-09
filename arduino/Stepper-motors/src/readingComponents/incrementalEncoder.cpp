@@ -3,38 +3,51 @@
 #include "../helpers/robotConfig.h"
 #include "incrementalEncoder.h"
 
-volatile uint32_t leftValue = 0;
-volatile uint32_t rightValue = 0;
+volatile int32_t leftValue = 0;
+volatile int32_t rightValue = 0;
 
-const uint32_t getIncrementalEncoderLeftValue() {
+const int32_t getIncrementalEncoderLeftValue() {
     return leftValue;
 }
 
-const uint32_t getIncrementalEncoderRightValue() {
+const int32_t getIncrementalEncoderRightValue() {
     return rightValue;
 }
 
 void increase1Left() {
     if(PINE & (1 << PE5))
+    {
+        //Serial.println("+1 Left");
         leftValue += 1;
+    }
     else
+    {
+        //Serial.println("-1 Left");
         leftValue -= 1;
+    }
 }
 
 void increase2Left() {
     if(PINE & (1 << PE4))
+    {
+        //Serial.println("+2 Left");
         leftValue -= 1;
-    else
+    }
+    else {
+        //Serial.println("-2 Left");
         leftValue += 1;
+    }
 }
 
 void increase1Right() {
+    //Serial.println("1 right");
     if(PIND & (1 << PD3))
         rightValue += 1;
     else
         rightValue -= 1;
 }
 void increase2Right() {
+   // Serial.println("2 right");
     if(PIND & (1 << PD2))
         rightValue -= 1;
     else
