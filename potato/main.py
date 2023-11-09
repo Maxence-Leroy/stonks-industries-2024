@@ -12,29 +12,17 @@ def main():
     strategy = ActionsSequence(
         timer_limit=MATCH_TIME,
         actions=[
-            ActionsInParallel(
-                actions = [
-                    Move(
-                        timer_limit=80,
-                        destination=Coordinates(1, 1, 0),
-                    ),
-                    Switch(actuator=robot.led_ethernet, on=True),
-                ],
-                allows_fail=True
+            Move(
+                timer_limit=80,
+                destination=Coordinates(10, 10, 0),
             ),
-            ActionsInParallel(
-                actions = [
-                    Move(
-                        timer_limit = 5,
-                        destination= Coordinates(2,2,0)
-                    ),
-                    Wait(time=5.0),
-                    Switch(actuator=robot.led_ethernet, on=False)
-                ],
-                allows_fail=True
+            Wait(time=5.0),
+            Move(
+                timer_limit = 5,
+                destination= Coordinates(0,0,0)
             )
         ],
-        allows_fail=True
+        allows_fail=False
     )
 
     logging_info(str(strategy))
