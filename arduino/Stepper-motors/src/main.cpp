@@ -17,7 +17,8 @@ bool firstTime = true;
 void setup()
 {
   Serial.begin(9600);
-  //Serial2.begin(115200); // Connection with the potato
+  Serial.println("Setup robot");
+  Serial2.begin(115200); // Connection with the potato
 
   setupMotors();
   setupAccelero();
@@ -25,6 +26,7 @@ void setup()
   setInitialPosition(0, 0, Angle(0));
   setLeftMotorSpeed(0);
   setRightMotorSpeed(0);
+  Serial.println("End setup");
 }
 
 void loop()
@@ -32,6 +34,8 @@ void loop()
   if(Serial2.available() > 0) 
   {
     command = Serial2.readStringUntil('\n');
+    Serial.print("command: ");
+    Serial.println(command);
     if(command.startsWith("INIT")) 
     {
       handleInitialPosition(command);
@@ -50,16 +54,21 @@ void loop()
     enslave(currentTime);
   }
 
-  if(getCurrentPath()->isOver(currentTime))
+  if(!getCurrentPath() || getCurrentPath()->isOver(currentTime))
   {
     Path* nextPath = getNextPath();
-    if(!nextPath)
+    if(nextPath)
     {
+      Serial.println("Use next path");
       nextPath->start();
       setCurrentPath(nextPath);
-    } else {
+    } 
+    else if(getCurrentPath())
+    {
       stopMotors();
-      Serial2.println("DONE");
+      setCurrentPath(nullptr);
+      Serial.println("Done moving");
+      Serial2.print("DONE\n");
     }
   }
 }

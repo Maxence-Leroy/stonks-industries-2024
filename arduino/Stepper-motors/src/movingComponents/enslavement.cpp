@@ -53,7 +53,7 @@ void enslave(long time) {
         Serial2.print(currentY);
         Serial2.print(";");
         Serial2.print(currentTheta.toDouble());
-        Serial2.println(")");
+        Serial2.print(")\n");
         previousPositionPrint = time;
     }
 

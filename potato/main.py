@@ -1,7 +1,7 @@
 import asyncio
 import time
 
-from src.action import ActionsInParallel, ActionsSequence, Move, Switch, Wait
+from src.action import ActionsSequence, Move, Wait
 from src.constants import MATCH_TIME
 from src.location import Coordinates
 from src.logging import logging_info
@@ -13,13 +13,12 @@ def main():
         timer_limit=MATCH_TIME,
         actions=[
             Move(
-                timer_limit=80,
-                destination=Coordinates(10, 10, 0),
+                destination=Coordinates(100, 0, 0)
             ),
             Wait(time=5.0),
             Move(
-                timer_limit = 5,
-                destination= Coordinates(0,0,0)
+                destination= Coordinates(0,0,0),
+                backwards=True
             )
         ],
         allows_fail=False

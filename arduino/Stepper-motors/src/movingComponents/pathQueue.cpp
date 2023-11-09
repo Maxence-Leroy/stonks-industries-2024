@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <math.h>
 #include "../helpers/queue.h"
 #include "../helpers/path/line.h"
@@ -8,10 +9,10 @@
 
 Queue<Path>* queue = new Queue<Path>();
 
-const double maxSpeed = 1;
-const double maxAcceleration = 1;
+const double maxSpeed = 10;
+const double maxAcceleration = 10;
 
-void addDestination(double x, double y, Angle theta)
+void addDestination(double x, double y, Angle theta, bool backwards)
 {
     double currentX = getCurrentX();
     double currentY = getCurrentY();
@@ -19,7 +20,8 @@ void addDestination(double x, double y, Angle theta)
 
     if(fabs(x - currentX) > 0.5 || fabs(y - currentY) > 0.5) 
     {
-        queue->add(new Line(currentX, currentY, x, y, maxSpeed, maxAcceleration));
+        Serial.println("New line");
+        queue->add(new Line(currentX, currentY, x, y, backwards ? -maxSpeed : maxSpeed, maxAcceleration));
     }
 
     if(fabs((currentTheta - theta).toDouble() > 0.05)) 

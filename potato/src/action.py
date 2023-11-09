@@ -293,6 +293,7 @@ class Move(Action):
     def __init__(
         self,
         destination: Location,
+        backwards: bool = False,
         timer_limit: float = MATCH_TIME,
         can_be_executed: Callable[[], bool] = lambda: True,
         affect_state: Callable[[], None] = lambda: None,
@@ -302,6 +303,9 @@ class Move(Action):
         ----------
         destination: Location
             The destination of the robot, it can either be an absolute location or the best possibility among many places.
+
+        backwards: bool
+            If the robot must go backwards to go to this destination. Default false.
 
         timer_limit: float
             Time limit to do the action (time counted since the begining of the match), `MATCH_TIME` by default
@@ -316,13 +320,14 @@ class Move(Action):
                 
         super().__init__(timer_limit, can_be_executed, affect_state)
         self.destination = destination
+        self.backwards = backwards
 
     def __str__(self) -> str:
         return f"Move to {str(self.destination)} {super().__str__()}"
 
     async def go_to_location(self) -> None:
         (x, y, theta) = self.destination.getLocation()
-        await robot.go_to(x, y, theta)
+        await robot.go_to(x, y, theta, self.backwards)
 
     execute: Callable[[Self], Awaitable[None]] = go_to_location
 
