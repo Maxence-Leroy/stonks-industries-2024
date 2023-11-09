@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <math.h>
 
 #include "enslavement.h"
@@ -9,7 +10,7 @@
 double currentX = 0, currentY = 0;
 Angle currentTheta = Angle(0);
 int32_t incrementalCounterLeft = 0, incrementalCounterRight = 0;
-long int previousTime = 0;
+long int previousTime = 0, previousPositionPrint = 0;
 
 double rotationError[3] = {0, 0, 0};
 double positionError[3] = {0, 0, 0};
@@ -43,6 +44,18 @@ void enslave(long time) {
     currentTheta = Angle(currentTheta.toDouble() + atan((newIncrementalRight-newIncrementalLeft-incrementalCounterRight+incrementalCounterLeft)*K_INC/WIDTH));
     incrementalCounterLeft = newIncrementalLeft;
     incrementalCounterRight = newIncrementalRight;
+
+    if(time - previousPositionPrint > 0.5 * SEC_TO_MICROS_MULTIPLICATOR)
+    {
+        Serial2.print("(");
+        Serial2.print(currentX);
+        Serial2.print(";");
+        Serial2.print(currentY);
+        Serial2.print(";");
+        Serial2.print(currentTheta.toDouble());
+        Serial2.println(")");
+        previousPositionPrint = time;
+    }
 
     if(currentPath->isGoingBackwards())
     {
@@ -90,4 +103,23 @@ void enslave(long time) {
 
     previousTime=time;
 
+}
+
+const double getCurrentX()
+{
+    return currentX;
+}
+
+const double getCurrentY()
+{
+    return currentY;
+}
+
+const Angle getCurrentTheta()
+{
+    return currentTheta;
+}
+
+const Path* getCurrentPath() {
+    return currentPath;
 }
