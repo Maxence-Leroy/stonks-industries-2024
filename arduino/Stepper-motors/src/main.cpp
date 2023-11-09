@@ -12,14 +12,19 @@
 Path* path;
 String command;
 
+bool firstTime = true;
+
 void setup()
 {
-  Serial2.begin(115200); // Connection with the potato
+  Serial.begin(9600);
+  //Serial2.begin(115200); // Connection with the potato
 
   setupMotors();
   setupAccelero();
   setupIncrementalEncoders();
   setInitialPosition(0, 0, Angle(0));
+  setLeftMotorSpeed(0);
+  setRightMotorSpeed(0);
 }
 
 void loop()
@@ -40,7 +45,10 @@ void loop()
     }
   }
   long currentTime = micros();
-  enslave(currentTime);
+  if(getCurrentPath())
+  {
+    enslave(currentTime);
+  }
 
   if(getCurrentPath()->isOver(currentTime))
   {
@@ -50,8 +58,8 @@ void loop()
       nextPath->start();
       setCurrentPath(nextPath);
     } else {
+      stopMotors();
       Serial2.println("DONE");
     }
   }
-
 }
