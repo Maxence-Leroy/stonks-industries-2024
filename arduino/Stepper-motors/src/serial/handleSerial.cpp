@@ -49,5 +49,7 @@ void handleMoveCommand(String command)
 
 void handleStopCommand()
 {
+    Serial.println("Stop command");
     stopMotors();
+    setCurrentPath(nullptr);
 }
