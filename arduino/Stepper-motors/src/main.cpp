@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+#include "helpers/robotConfig.h"
 #include "helpers/path/line.h"
 #include "helpers/path/rotation.h"
 #include "readingComponents/accelero.h"
@@ -16,8 +17,11 @@ bool firstTime = true;
 
 void setup()
 {
-  Serial.begin(9600);
-  Serial.println("Setup robot");
+  if(LOGGING)
+  {
+    Serial.begin(9600);
+    Serial.println("Setup robot");
+  }
   Serial2.begin(115200); // Connection with the potato
 
   setupMotors();
@@ -26,7 +30,10 @@ void setup()
   setInitialPosition(0, 0, Angle(0));
   setLeftMotorSpeed(0);
   setRightMotorSpeed(0);
-  Serial.println("End setup");
+  if(LOGGING)
+  {
+    Serial.println("End setup");
+  }
 }
 
 void loop()
@@ -34,8 +41,11 @@ void loop()
   if(Serial2.available() > 0) 
   {
     command = Serial2.readStringUntil('\n');
-    Serial.print("command: ");
-    Serial.println(command);
+    if(LOGGING)
+    {
+      Serial.print("command: ");
+      Serial.println(command);
+    }
     if(command.startsWith("INIT")) 
     {
       handleInitialPosition(command);
@@ -59,7 +69,10 @@ void loop()
     Path* nextPath = getNextPath();
     if(nextPath)
     {
-      Serial.println("Use next path");
+      if(LOGGING)
+      {
+        Serial.println("Use next path");
+      }
       nextPath->start();
       setCurrentPath(nextPath);
     } 
@@ -67,7 +80,10 @@ void loop()
     {
       stopMotors();
       setCurrentPath(nullptr);
-      Serial.println("Done moving");
+      if(LOGGING)
+      {
+        Serial.println("Done moving");
+      }
       Serial2.print("DONE\n");
     }
   }

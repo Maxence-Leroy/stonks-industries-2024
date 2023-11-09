@@ -33,4 +33,6 @@
 #define KI_ROT_SAT 0.05
 #define KI_POS_SAT 0.05
 
+#define LOGGING true
+
 #endif

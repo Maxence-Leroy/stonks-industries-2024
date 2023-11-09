@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <math.h>
 #include "../helpers/queue.h"
+#include "../helpers/robotConfig.h"
 #include "../helpers/path/line.h"
 #include "../helpers/path/rotation.h"
 #include "enslavement.h"
@@ -20,7 +21,10 @@ void addDestination(double x, double y, Angle theta, bool backwards)
 
     if(fabs(x - currentX) > 0.5 || fabs(y - currentY) > 0.5) 
     {
-        Serial.println("New line");
+        if(LOGGING)
+        {
+            Serial.println("New line");
+        }
         queue->add(new Line(currentX, currentY, x, y, backwards ? -maxSpeed : maxSpeed, maxAcceleration));
     }
 

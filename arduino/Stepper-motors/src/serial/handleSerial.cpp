@@ -1,4 +1,5 @@
 #include "handleSerial.h"
+#include "../helpers/robotConfig.h"
 #include "../movingComponents/stepperMotors.h"
 #include "../movingComponents/enslavement.h"
 #include "../movingComponents/pathQueue.h"
@@ -34,22 +35,31 @@ void handleInitialPosition(String command)
 
 void handleMoveCommand(String command)
 {
-    Serial.println("Move command");
+    if(LOGGING)
+    {
+        Serial.println("Move command");
+    }
     String coordinates[4];
     extractCoordinates(command, coordinates);
-    Serial.print("Destination: (");
-    Serial.print(coordinates[0]);
-    Serial.print(";");
-    Serial.print(coordinates[1]);
-    Serial.print(";");
-    Serial.print(coordinates[2]);
-    Serial.println(")");
+    if(LOGGING)
+    {
+        Serial.print("Destination: (");
+        Serial.print(coordinates[0]);
+        Serial.print(";");
+        Serial.print(coordinates[1]);
+        Serial.print(";");
+        Serial.print(coordinates[2]);
+        Serial.println(")");
+    }
     addDestination(coordinates[0].toDouble(), coordinates[1].toDouble(), Angle(coordinates[2].toDouble()), coordinates[3].toInt() == 1);
 }
 
 void handleStopCommand()
 {
-    Serial.println("Stop command");
+    if(LOGGING)
+    {
+        Serial.println("Stop command");
+    }
     stopMotors();
     setCurrentPath(nullptr);
 }
