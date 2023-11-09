@@ -8,8 +8,8 @@
 
 Queue<Path>* queue = new Queue<Path>();
 
-const double maxSpeed = 10;
-const double maxAcceleration = 10;
+const double maxSpeed = 1;
+const double maxAcceleration = 1;
 
 void addDestination(double x, double y, Angle theta)
 {
