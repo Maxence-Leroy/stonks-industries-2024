@@ -111,28 +111,5 @@ double Line::positionError(double x, double y, Angle theta, long time)
 
 double Line::rotationError(double x, double y, Angle theta, long time)
 {
-  long ellaspedTime = time - mStartTime;
-  // We project on the path line
-  double projectedY = -(x-mStart[X])*mVector[Y]+(y-mStart[Y])*mVector[X];
-
-  if(ellaspedTime < 0)
-  {
-    return (mTheta-theta).toDouble();
-  }
-  else if(0 < ellaspedTime && ellaspedTime < mEndAccelerationTime)
-  {
-    return (Angle(-projectedY)-(theta-mTheta)).toDouble()*ellaspedTime* MICROS_TO_SEC_MULTIPLICATOR * mMaxAcceleration * 10;
-  }
-  else if(mEndAccelerationTime < ellaspedTime && ellaspedTime < mStartDeccelerationTime)
-  {
-    return (Angle(-projectedY)-(theta-mTheta)).toDouble()* mMaxSpeed * 10;
-  }
-  else if(mStartDeccelerationTime < ellaspedTime && ellaspedTime < mExpectedDuration)
-  {
-    return (Angle(-projectedY)-(theta-mTheta)).toDouble()*SEC_TO_MICROS_MULTIPLICATOR*(mExpectedDuration-ellaspedTime)*mMaxAcceleration*10;
-  }
-  else
-  {
-    return (mTheta-theta).toDouble();
-  }
+  return (mTheta-theta).toDouble();
 }

@@ -80,6 +80,14 @@ void enslave(long time) {
     if(fabs(rotationError[I])>KI_ROT_SAT)
         rotationError[I]=KI_ROT_SAT*fabs(rotationError[I])/rotationError[I];
 
+    if(LOGGING)
+    {
+        Serial.print("Pos error ");
+        Serial.print(currentPositionError);
+        Serial.print(" rot error ");
+        Serial.println(currentRotationError);
+    }
+
     // Then we enslave
     int orderR = rotationError[P] * P_ROTATION_ERROR_COEFFICIENT
                 + rotationError[I] * I_ROTATION_ERROR_COEFFICIENT
