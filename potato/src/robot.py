@@ -39,6 +39,7 @@ class Robot:
         All the actuators will be attributes of the class
     """
     start_time: float
+    previous_send_time: float
     is_moving: bool
     current_location: Coordinates
     aimed_position: Coordinates
@@ -49,6 +50,8 @@ class Robot:
         self.stepper_motors = create_stepper_motors()
 
         self.path_queue = Queue(maxsize=0)
+
+        self.previous_send_time = 0
 
         self.is_moving = False
         self.start_time = 0
@@ -141,7 +144,9 @@ class Robot:
             if self.current_path is not None:
                 expected_coordinates = self.current_path.expected_position(time.time())
                 instruction = f"({expected_coordinates.x};{expected_coordinates.y};{expected_coordinates.theta.to_float()};{"1" if self.current_path.is_going_backwards() else "0"})\n"
-                self.stepper_motors.write(instruction)
+                if time.time() - self.previous_send_time > 0.001:
+                    self.stepper_motors.write(instruction)
+                    self.previous_send_time = time.time()
                 if self.current_path.is_over():
                     self.current_path = None
             elif not self.path_queue.empty():
