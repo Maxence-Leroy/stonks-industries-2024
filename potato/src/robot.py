@@ -133,7 +133,6 @@ class Robot:
 
         self.is_moving = True
         while self.is_moving:
-            print("Waiting")
             await asyncio.sleep(0.2)
         return
     

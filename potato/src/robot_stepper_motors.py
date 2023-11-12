@@ -35,6 +35,7 @@ class SerialStepperMotors(RobotStepperMotors):
         )
 
     def write(self, text: str) -> None:
+        logging_debug(f"Writing to serial {text}")
         self.serial.write(text.encode("utf-8"))
         self.serial.flush()
 

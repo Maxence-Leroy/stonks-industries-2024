@@ -63,8 +63,7 @@ class Line(Path):
         ellapsed_time = time - self._start_time
         vector_x = cos(self._theta.to_float())
         vector_y = sin(self._theta.to_float())
-        print(vector_y)
-
+        
         if ellapsed_time < 0:
             return Coordinates(self._x_start, self._y_start, self._theta)
         elif 0 < ellapsed_time < self._end_acceleration_time:
