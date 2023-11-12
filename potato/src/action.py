@@ -293,6 +293,7 @@ class Move(Action):
     def __init__(
         self,
         destination: Location,
+        forced_angle: bool = False,
         backwards: bool = False,
         timer_limit: float = MATCH_TIME,
         can_be_executed: Callable[[], bool] = lambda: True,
@@ -303,6 +304,9 @@ class Move(Action):
         ----------
         destination: Location
             The destination of the robot, it can either be an absolute location or the best possibility among many places.
+
+        forced_angle: bool
+            Is true if the robot must do a rotation to acheive the speciefed angle. Otherwise, focus only on the x & y coordinates
 
         backwards: bool
             If the robot must go backwards to go to this destination. Default false.
@@ -320,6 +324,7 @@ class Move(Action):
                 
         super().__init__(timer_limit, can_be_executed, affect_state)
         self.destination = destination
+        self.forced_angle = forced_angle
         self.backwards = backwards
 
     def __str__(self) -> str:
@@ -327,7 +332,7 @@ class Move(Action):
 
     async def go_to_location(self) -> None:
         (x, y, theta) = self.destination.getLocation()
-        await robot.go_to(x, y, theta, self.backwards)
+        await robot.go_to(x, y, theta, self.backwards, self.forced_angle)
 
     execute: Callable[[Self], Awaitable[None]] = go_to_location
 

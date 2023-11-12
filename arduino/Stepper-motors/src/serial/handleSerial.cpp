@@ -4,7 +4,7 @@
 #include "../movingComponents/enslavement.h"
 #include "../movingComponents/pathQueue.h"
 
-void extractCoordinates(String command, String coordinates[4]) {
+void extractCoordinates(String command, String coordinates[5]) {
     int coordinatesCount = 0;
     command.replace('(', ' ');
     command.replace(')', ' ');
@@ -28,7 +28,7 @@ void extractCoordinates(String command, String coordinates[4]) {
 void handleInitialPosition(String command)
 {
     command = command.substring(5); // Starts after "INIT "
-    String coordinates[4];
+    String coordinates[5];
     extractCoordinates(command, coordinates);
     setInitialPosition(coordinates[0].toDouble(), coordinates[1].toDouble(), Angle(coordinates[2].toDouble()));
 }
@@ -39,7 +39,7 @@ void handleMoveCommand(String command)
     {
         Serial.println("Move command");
     }
-    String coordinates[4];
+    String coordinates[5];
     extractCoordinates(command, coordinates);
     if(LOGGING)
     {
@@ -51,7 +51,7 @@ void handleMoveCommand(String command)
         Serial.print(coordinates[2]);
         Serial.println(")");
     }
-    addDestination(coordinates[0].toDouble(), coordinates[1].toDouble(), Angle(coordinates[2].toDouble()), coordinates[3].toInt() == 1);
+    addDestination(coordinates[0].toDouble(), coordinates[1].toDouble(), Angle(coordinates[2].toDouble()), coordinates[3].toInt() == 1, coordinates[4].toInt() == 1);
 }
 
 void handleStopCommand()

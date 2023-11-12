@@ -86,11 +86,11 @@ class Robot:
         self.is_moving = False
 
     async def go_to(
-        self, x: float, y: float, theta: float, backwards: bool
+        self, x: float, y: float, theta: float, backwards: bool, forced_angle: bool
     ) -> None:
         """Function to move to specific coordinates. Returns when the Arduino has sent "DONE"."""
 
-        instruction = f"({x};{y};{theta};{"1" if backwards else "0"})\n"
+        instruction = f"({x};{y};{theta};{"1" if backwards else "0"};{"1" if forced_angle else "0"})\n"
         self.stepper_motors.write(instruction)
         self.is_moving = True
         while self.is_moving:

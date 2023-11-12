@@ -15,7 +15,7 @@ const double maxAcceleration = 500;
 const double maxSpeedRotation = 2;
 const double maxAccelerationRotation = 2;
 
-void addDestination(double x, double y, Angle theta, bool backwards)
+void addDestination(double x, double y, Angle theta, bool backwards, bool forcedAngle)
 {
     double currentX = getCurrentX();
     double currentY = getCurrentY();
@@ -50,7 +50,7 @@ void addDestination(double x, double y, Angle theta, bool backwards)
         }
     }
 
-    if(fabs((currentTheta - theta).toDouble() > 0.05)) 
+    if(fabs((currentTheta - theta).toDouble() > 0.05) && forcedAngle) 
     {
         if(LOGGING)
         {

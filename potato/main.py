@@ -1,4 +1,5 @@
 import asyncio
+from math import pi
 import time
 
 from src.action import ActionsSequence, Move, Wait
@@ -13,7 +14,8 @@ def main():
         timer_limit=MATCH_TIME,
         actions=[
             Move(
-                destination=Coordinates(100, 0, 0)
+                destination=Coordinates(300, 0, pi / 2),
+                forced_angle=True
             ),
             Wait(time=5.0),
             Move(

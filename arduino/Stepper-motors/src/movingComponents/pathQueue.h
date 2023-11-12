@@ -4,7 +4,7 @@
 #include "../helpers/angle.h"
 #include "../helpers/path/path.h"
 
-void addDestination(double x, double y, Angle theta, bool backwards);
+void addDestination(double x, double y, Angle theta, bool backwards, bool forcedAngle);
 Path* getNextPath();
 
 #endif
