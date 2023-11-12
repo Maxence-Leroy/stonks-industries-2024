@@ -72,6 +72,10 @@ class Robot:
                 logging_debug(f"Current robot position {x},{y},{theta}")
                 self.current_location = Coordinates(x, y, theta)
 
+    def set_initial_position(self, location: Coordinates) -> None:
+        self.current_location = location
+        self.stepper_motors.write(f"({location.x};{location.y};{location.theta})\n")
+
     def stop_moving(self):
         """Function to be called when a move action timeout
         (will normally be automaticly done at the end of the match)

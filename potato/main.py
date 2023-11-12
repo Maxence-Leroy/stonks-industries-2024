@@ -28,6 +28,7 @@ def main():
 
     time.sleep(2.0)
 
+    robot.set_initial_position(Coordinates(0, 0, 0))
     robot.start_time = time.time()
     start()
     asyncio.run(strategy.exec())
