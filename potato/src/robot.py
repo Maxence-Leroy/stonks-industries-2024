@@ -74,7 +74,7 @@ class Robot:
 
     def set_initial_position(self, location: Coordinates) -> None:
         self.current_location = location
-        self.stepper_motors.write(f"({location.x};{location.y};{location.theta})\n")
+        self.stepper_motors.write(f"INIT ({location.x};{location.y};{location.theta})\n")
 
     def stop_moving(self):
         """Function to be called when a move action timeout

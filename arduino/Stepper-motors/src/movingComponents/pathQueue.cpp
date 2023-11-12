@@ -17,6 +17,20 @@ const double maxAccelerationRotation = 2;
 
 void addDestination(double x, double y, Angle theta, bool backwards, bool forcedAngle)
 {
+    if(LOGGING)
+    {
+        Serial.print("Destination: (");
+        Serial.print(x);
+        Serial.print(";");
+        Serial.print(y);
+        Serial.print(";");
+        Serial.print(theta.toDouble());
+        Serial.print(";");
+        Serial.print(backwards);
+        Serial.print(";");
+        Serial.print(forcedAngle);
+        Serial.println(")");
+    }
     double currentX = getCurrentX();
     double currentY = getCurrentY();
     Angle currentTheta = getCurrentTheta();
@@ -28,7 +42,7 @@ void addDestination(double x, double y, Angle theta, bool backwards, bool forced
         requiredTheta = Angle::computeAngle(currentX, currentY, x, y);
         if(backwards)
         {
-            currentTheta += M_PI;
+            requiredTheta += M_PI;
         }
         if(fabs((requiredTheta - currentTheta).toDouble()))
         {
@@ -46,11 +60,11 @@ void addDestination(double x, double y, Angle theta, bool backwards, bool forced
         queue->add(new Line(currentX, currentY, x, y, backwards ? -maxSpeed : maxSpeed, maxAcceleration));
         if(backwards)
         {
-            currentTheta -= M_PI;
+            requiredTheta -= M_PI;
         }
     }
 
-    if(fabs((currentTheta - theta).toDouble() > 0.05) && forcedAngle) 
+    if(fabs((currentTheta - theta).toDouble()) > 0.05 && forcedAngle) 
     {
         if(LOGGING)
         {
