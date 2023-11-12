@@ -40,6 +40,9 @@ class Line(Path):
             if self._vector_y < 0:
                 self._theta += (2 * pi)
 
+            if self.is_going_backwards():
+                self._theta += pi
+
 
             if 2 * acceleration_distance > distance:
                 # Short distance, we don't have time to reach full speed
@@ -61,22 +64,20 @@ class Line(Path):
 
     def expected_position(self, time: float) -> Coordinates:
         ellapsed_time = time - self._start_time
-        vector_x = cos(self._theta.to_float())
-        vector_y = sin(self._theta.to_float())
         
         if ellapsed_time < 0:
             return Coordinates(self._x_start, self._y_start, self._theta)
         elif 0 < ellapsed_time < self._end_acceleration_time:
-            expected_x = self._x_start + vector_x * 0.5 * self._max_acceleration * pow(ellapsed_time, 2)
-            expected_y = self._y_start + vector_y * 0.5 * self._max_acceleration * pow(ellapsed_time, 2)
+            expected_x = self._x_start + self._vector_x * 0.5 * self._max_acceleration * pow(ellapsed_time, 2)
+            expected_y = self._y_start + self._vector_y * 0.5 * self._max_acceleration * pow(ellapsed_time, 2)
             return Coordinates(expected_x, expected_y, self._theta)
         elif self._end_acceleration_time < ellapsed_time < self._start_decceleration_time:
-            expected_x = self._x_start + vector_x * (self._acceleration_distance + (ellapsed_time - self._end_acceleration_time) * self._max_speed)
-            expected_y = self._y_start + vector_y * (self._acceleration_distance + (ellapsed_time - self._end_acceleration_time) * self._max_speed)
+            expected_x = self._x_start + self._vector_x * (self._acceleration_distance + (ellapsed_time - self._end_acceleration_time) * self._max_speed)
+            expected_y = self._y_start + self._vector_y * (self._acceleration_distance + (ellapsed_time - self._end_acceleration_time) * self._max_speed)
             return Coordinates(expected_x, expected_y, self._theta)
         elif self._start_decceleration_time < ellapsed_time < self._expected_duration:
-            expected_x = self._x_end - vector_x * 0.5 * self._max_acceleration * pow(self._expected_duration - ellapsed_time, 2)
-            expected_y = self._y_end - vector_y * 0.5 * self._max_acceleration * pow(self._expected_duration - ellapsed_time, 2)
+            expected_x = self._x_end - self._vector_x * 0.5 * self._max_acceleration * pow(self._expected_duration - ellapsed_time, 2)
+            expected_y = self._y_end - self._vector_y * 0.5 * self._max_acceleration * pow(self._expected_duration - ellapsed_time, 2)
             return Coordinates(expected_x, expected_y, self._theta)
         else:
             return Coordinates(self._x_end, self._y_end, self._theta)

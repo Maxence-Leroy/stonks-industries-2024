@@ -88,7 +88,7 @@ void enslave(double expectedX, double expectedY, Angle expectedTheta, bool backw
                 + positionError[I] * I_POSITION_ERROR_COEFFICIENT
                 + positionError[D] * D_POSITION_ERROR_COEFFICIENT;
  
-    if(backwards)
+    if(!backwards)
     {
         setLeftMotorSpeed(+orderP - orderR);
         setRightMotorSpeed(+orderP + orderR);

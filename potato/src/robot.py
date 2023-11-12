@@ -126,10 +126,10 @@ class Robot:
             if fabs((required_theta - current_theta).to_float()) > 0.1:
                 self.path_queue.put_nowait(Rotation(current_x, current_y, current_theta, required_theta))
 
-            self.path_queue.put_nowait(Line(current_x, current_y, x, y, backwards))
-
             if backwards:
                 current_theta -= pi
+
+            self.path_queue.put_nowait(Line(current_x, current_y, x, y, backwards))
 
         if fabs((current_theta - theta).to_float()) > 0.05:
             self.path_queue.put_nowait(Rotation(x, y, required_theta, theta))
