@@ -2,6 +2,7 @@
 #include "../helpers/robotConfig.h"
 #include "../movingComponents/stepperMotors.h"
 #include "../movingComponents/enslavement.h"
+#include "../movingComponents/pathQueue.h"
 
 void extractCoordinates(String command, String coordinates[4]) {
     int coordinatesCount = 0;
@@ -32,6 +33,27 @@ void handleInitialPosition(String command)
     setInitialPosition(coordinates[0].toDouble(), coordinates[1].toDouble(), Angle(coordinates[2].toDouble()));
 }
 
+void handleMoveCommand(String command)
+{
+    if(LOGGING)
+    {
+        Serial.println("Move command");
+    }
+    String coordinates[4];
+    extractCoordinates(command, coordinates);
+    if(LOGGING)
+    {
+        Serial.print("Destination: (");
+        Serial.print(coordinates[0]);
+        Serial.print(";");
+        Serial.print(coordinates[1]);
+        Serial.print(";");
+        Serial.print(coordinates[2]);
+        Serial.println(")");
+    }
+    addDestination(coordinates[0].toDouble(), coordinates[1].toDouble(), Angle(coordinates[2].toDouble()), coordinates[3].toInt() == 1);
+}
+
 void handleStopCommand()
 {
     if(LOGGING)
@@ -39,4 +61,5 @@ void handleStopCommand()
         Serial.println("Stop command");
     }
     stopMotors();
+    setCurrentPath(nullptr);
 }

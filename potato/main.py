@@ -5,7 +5,6 @@ from src.action import ActionsSequence, Move, Wait
 from src.constants import MATCH_TIME
 from src.location import Coordinates
 from src.logging import logging_info, start
-from src.path.angle import Angle
 from src.robot import robot
 
 
@@ -14,11 +13,11 @@ def main():
         timer_limit=MATCH_TIME,
         actions=[
             Move(
-                destination=Coordinates(300, 0, Angle(0))
+                destination=Coordinates(100, 0, 0)
             ),
             Wait(time=5.0),
             Move(
-                destination= Coordinates(0,0,Angle(0)),
+                destination= Coordinates(0,0,0),
                 backwards=True
             )
         ],
@@ -29,7 +28,6 @@ def main():
 
     time.sleep(2.0)
 
-    robot.set_initial_position(Coordinates(0, 0, Angle(0)))
     robot.start_time = time.time()
     start()
     asyncio.run(strategy.exec())

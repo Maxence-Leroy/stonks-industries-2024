@@ -31,6 +31,8 @@ class Angle
     bool operator<=(Angle b);
     bool operator>=(Angle b);
     bool operator==(const Angle b) const;
+
+    static Angle computeAngle(double startX, double startY, double endX, double endY);
 };
 
 inline Angle Angle::operator/(double a){

@@ -2,21 +2,20 @@ from abc import ABC, abstractmethod
 from enum import Enum
 
 from src.playing_area import playing_area
-from src.path.angle import Angle
 
 
 class Location(ABC):
     """Abstract class for a location. Has a method `getLocation` that will be called when the move location is starting"""
 
     @abstractmethod
-    def getLocation(self) -> tuple[float, float, Angle]:
+    def getLocation(self) -> tuple[float, float, float]:
         raise NotImplementedError()
 
 
 class Coordinates(Location):
     """Location with "absolute" coordinates. They will be converted according to the side of the playing area."""
 
-    def __init__(self, x: float, y: float, theta: Angle) -> None:
+    def __init__(self, x: float, y: float, theta: float) -> None:
         """
         Parameters
         ----------
@@ -26,7 +25,7 @@ class Coordinates(Location):
         y: float
             Y position in mm
 
-        theta: Angle
+        theta: float
             Angle of the robot in radians
         """
 
@@ -38,7 +37,7 @@ class Coordinates(Location):
     def __str__(self) -> str:
         return f"(x: {self.x}, y: {self.y}, θ: {self.theta})"
 
-    def getLocation(self) -> tuple[float, float, Angle]:
+    def getLocation(self) -> tuple[float, float, float]:
         return (self.x, self.y, self.theta)
 
 
@@ -81,7 +80,7 @@ class BestAvailable(Location):
     def __str__(self) -> str:
         return f'Next {str(self.location).replace("_", " ").lower()}'
 
-    def getLocation(self) -> tuple[float, float, Angle]:
+    def getLocation(self) -> tuple[float, float, float]:
         match self.location:
             case ImportantLocation.POT:
                 return playing_area.get_next_pot()
