@@ -144,16 +144,17 @@ class Robot:
             if self.current_path is not None:
                 expected_coordinates = self.current_path.expected_position(time.time())
                 instruction = f"({expected_coordinates.x};{expected_coordinates.y};{expected_coordinates.theta.to_float()};{"1" if self.current_path.is_going_backwards() else "0"})\n"
-                if time.time() - self.previous_send_time > 0.001:
+                if time.time() - self.previous_send_time > 0.05:
                     self.stepper_motors.write(instruction)
                     self.previous_send_time = time.time()
                 if self.current_path.is_over():
                     self.current_path = None
+                    if self.path_queue.empty():
+                        self.stop_moving()
             elif not self.path_queue.empty():
                 self.current_path = self.path_queue.get_nowait()
                 self.current_path.start()
             else:
-                self.is_moving = False
                 time.sleep(0.1)
 
 
