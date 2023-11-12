@@ -15,8 +15,6 @@ long int previousTime = 0, previousPositionPrint = 0;
 double rotationError[3] = {0, 0, 0};
 double positionError[3] = {0, 0, 0};
 
-Path* currentPath;
-
 void setInitialPosition(double x, double y, Angle theta) {
     currentX = x;
     currentY = y;
@@ -31,11 +29,9 @@ void setInitialPosition(double x, double y, Angle theta) {
     positionError[I] = 0;
 }
 
-void setCurrentPath(Path* path) {
-    currentPath = path;
-}
-
-void enslave(long time) {
+void enslave(double expectedX, double expectedY, Angle expectedTheta, bool backwards)
+{
+    long time = micros();
     int32_t newIncrementalLeft = getIncrementalEncoderLeftValue();
     int32_t newIncrementalRight = getIncrementalEncoderRightValue(); 
 
@@ -57,13 +53,8 @@ void enslave(long time) {
         previousPositionPrint = time;
     }
 
-    if(currentPath->isGoingBackwards())
-    {
-        currentTheta = currentTheta +Angle(M_PI);
-    }
-
-    double currentPositionError = currentPath->positionError(currentX, currentY, currentTheta, time);
-    double currentRotationError = currentPath->rotationError(currentX, currentY, currentTheta, time);
+    double currentPositionError = sqrt(pow(expectedX - currentX, 2) + pow(expectedY - currentY, 2));
+    double currentRotationError = (expectedTheta - currentTheta).toDouble();
 
     double elapsedTimeInS = (time - previousTime) * MICROS_TO_SEC_MULTIPLICATOR;
 
@@ -97,7 +88,7 @@ void enslave(long time) {
                 + positionError[I] * I_POSITION_ERROR_COEFFICIENT
                 + positionError[D] * D_POSITION_ERROR_COEFFICIENT;
  
-    if(!currentPath->isGoingBackwards())
+    if(backwards)
     {
         setLeftMotorSpeed(+orderP - orderR);
         setRightMotorSpeed(+orderP + orderR);
@@ -111,23 +102,4 @@ void enslave(long time) {
 
     previousTime=time;
 
-}
-
-const double getCurrentX()
-{
-    return currentX;
-}
-
-const double getCurrentY()
-{
-    return currentY;
-}
-
-const Angle getCurrentTheta()
-{
-    return currentTheta;
-}
-
-const Path* getCurrentPath() {
-    return currentPath;
 }

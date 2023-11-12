@@ -3,8 +3,8 @@
 
 #include <Arduino.h>
 
+void extractCoordinates(String command, String coordinates[4]);
 void handleInitialPosition(String command);
-void handleMoveCommand(String command);
 void handleStopCommand();
 
 #endif
