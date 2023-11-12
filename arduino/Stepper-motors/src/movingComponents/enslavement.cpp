@@ -45,7 +45,7 @@ void enslave(long time) {
     incrementalCounterLeft = newIncrementalLeft;
     incrementalCounterRight = newIncrementalRight;
 
-    if(time - previousPositionPrint > 0.5 * SEC_TO_MICROS_MULTIPLICATOR)
+    if(time - previousPositionPrint > 1000 /*/µs*/)
     {
         Serial2.print("(");
         Serial2.print(currentX);
