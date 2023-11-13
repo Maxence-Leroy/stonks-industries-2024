@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <math.h>
 
 #include "../maths_helpers.h"
@@ -45,6 +46,13 @@ Rotation::Rotation(double x, double y, Angle startTheta, Angle endTheta, double 
 }
 
 Rotation::~Rotation(){}
+
+String Rotation::debugString() 
+{
+  String startTheta = String(mStartTheta.toDouble(), 4);
+  String endTheta = String(mEndTheta.toDouble(), 4);
+  return String("Rotation from " + startTheta + " to " + endTheta);
+}
 
 double Rotation::positionError(double x, double y, Angle theta, long time)
 {

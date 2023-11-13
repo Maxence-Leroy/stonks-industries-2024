@@ -27,6 +27,10 @@ void extractCoordinates(String command, String coordinates[5]) {
 
 void handleInitialPosition(String command)
 {
+    if(LOGGING)
+    {
+        Serial.println("Init command");
+    }
     command = command.substring(5); // Starts after "INIT "
     String coordinates[5];
     extractCoordinates(command, coordinates);
@@ -41,7 +45,13 @@ void handleMoveCommand(String command)
     }
     String coordinates[5];
     extractCoordinates(command, coordinates);
-    addDestination(coordinates[0].toDouble(), coordinates[1].toDouble(), Angle(coordinates[2].toDouble()), coordinates[3].toInt() == 1, coordinates[4].toInt() == 1);
+    Destination* destination = new Destination(
+        coordinates[0].toDouble(),
+        coordinates[1].toDouble(),
+        Angle(coordinates[2].toDouble()),
+        coordinates[3].toInt() == 1,
+        coordinates[4].toInt() == 1);
+    addDestination(destination);
 }
 
 void handleStopCommand()

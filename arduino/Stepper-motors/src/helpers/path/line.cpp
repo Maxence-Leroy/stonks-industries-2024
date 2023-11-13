@@ -31,6 +31,7 @@ Line::Line(double xStart, double yStart, double xEnd, double yEnd,  double maxSp
         mVector[X]=1;
         mVector[Y]=0;
         mTheta = 0;
+        mExpectedDuration = 0;
     }
     else
     {
@@ -67,6 +68,15 @@ Line::Line(double xStart, double yStart, double xEnd, double yEnd,  double maxSp
 }
 
 Line::~Line(){}
+
+String Line::debugString() 
+{
+  String xStart = String(mStart[X], 1);
+  String yStart = String(mStart[Y], 1);
+  String xEnd = String(mEnd[X], 1);
+  String yEnd = String(mEnd[Y], 1);
+  return String("Line from (" + xStart + "," + yStart + ") to (" + xEnd + "," + yEnd + ")");
+}
 
 double Line::positionError(double x, double y, Angle theta, long time)
 {

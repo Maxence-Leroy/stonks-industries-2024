@@ -22,6 +22,11 @@ double Path::rotationError(double x, double y, Angle theta, long time)
     return 0;
 }
 
+String Path::debugString() 
+{
+    return "";
+}
+
 bool Path::isGoingBackwards() const 
 {
     return mGoingBackwards;

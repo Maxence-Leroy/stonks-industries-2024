@@ -9,14 +9,34 @@
 #include "pathQueue.h"
 
 Queue<Path>* queue = new Queue<Path>();
+Queue<Destination>* destinationQueue = new Queue<Destination>();
 
 const double maxSpeed = 500;
 const double maxAcceleration = 500;
 const double maxSpeedRotation = 2;
 const double maxAccelerationRotation = 2;
 
-void addDestination(double x, double y, Angle theta, bool backwards, bool forcedAngle)
+void addDestination(Destination* destination)
 {
+    destinationQueue->add(destination);
+    if(LOGGING)
+    {
+        Serial.println("Add destination");
+    }
+}
+
+bool extractNextDestination()
+{
+    Destination* nextDestination = destinationQueue->pop();
+    if(!nextDestination) {
+        return false;
+    }
+    double x = nextDestination->x;
+    double y = nextDestination->y;
+    Angle theta = nextDestination->theta;
+    bool backwards = nextDestination->backwards;
+    bool forcedAngle = nextDestination->forcedAngle;
+    
     if(LOGGING)
     {
         Serial.print("Destination: (");
@@ -72,6 +92,7 @@ void addDestination(double x, double y, Angle theta, bool backwards, bool forced
         }
         queue->add(new Rotation(x, y, requiredTheta, theta, maxSpeedRotation, maxAccelerationRotation));
     }
+    return true;
 }
 
 Path* getNextPath()

@@ -1,6 +1,7 @@
 #ifndef LINE_H
 #define LINE_H
 
+#include <Arduino.h>
 #include "path.h"
 #include "../maths_helpers.h"
 
@@ -20,6 +21,7 @@ class Line : public Path
 
     double positionError(double x, double y, Angle theta, long time);
     double rotationError(double x, double y, Angle theta, long time);
+    String debugString();
 
     inline double getEndX(){return mEnd[X];}
     inline double getEndY(){return mEnd[Y];}

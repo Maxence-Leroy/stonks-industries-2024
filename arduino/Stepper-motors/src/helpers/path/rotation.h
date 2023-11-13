@@ -19,6 +19,7 @@ class Rotation : public Path
 
     double positionError(double x, double y, Angle theta, long time);
     double rotationError(double x, double y, Angle theta, long time);
+    String debugString();
 };
 
 #endif

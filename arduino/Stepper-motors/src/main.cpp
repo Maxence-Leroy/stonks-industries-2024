@@ -72,19 +72,25 @@ void loop()
       if(LOGGING)
       {
         Serial.println("Use next path");
+        Serial.println(nextPath->debugString());
       }
       nextPath->start();
       setCurrentPath(nextPath);
     } 
     else if(getCurrentPath())
     {
-      stopMotors();
-      setCurrentPath(nullptr);
-      if(LOGGING)
-      {
-        Serial.println("Done moving");
-      }
-      Serial2.print("DONE\n");
+      bool hasOtherPath = extractNextDestination();
+      if(!hasOtherPath) {
+        stopMotors();
+        setCurrentPath(nullptr);
+        if(LOGGING)
+        {
+          Serial.println("Done moving");
+        }
+        Serial2.print("DONE\n");
+      } 
+    } else {
+      extractNextDestination();
     }
   }
 }
