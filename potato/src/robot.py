@@ -3,6 +3,7 @@ import threading
 import time
 
 from src.constants import MATCH_TIME
+from src.d_star import DStarLite
 from src.robot_actuator import create_robot_binary_actuator
 from src.robot_stepper_motors import create_stepper_motors
 from src.location import Coordinates
@@ -34,6 +35,7 @@ class Robot:
     start_time: float
     is_moving: bool
     current_location: Coordinates
+    d_star: DStarLite
 
     def __init__(self) -> None:
         self.stepper_motors = create_stepper_motors()
@@ -44,6 +46,8 @@ class Robot:
         self.led_ethernet = create_robot_binary_actuator(
             chip="gpiochip1", line=15, name="Ethernet LED"
         )
+
+        self.d_star = DStarLite()
 
         # Always read the serial from stepper motors to update the robot's state
         thread = threading.Thread(target=self.read_serial)
@@ -86,7 +90,7 @@ class Robot:
         self.is_moving = False
 
     async def go_to(
-        self, x: float, y: float, theta: float, backwards: bool, forced_angle: bool
+        self, x: float, y: float, theta: float, backwards: bool, forced_angle: bool, pathfinding: bool
     ) -> None:
         """Function to move to specific coordinates. Returns when the Arduino has sent "DONE"."""
 

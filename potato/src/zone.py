@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from enum import Enum
+from math import floor, ceil, sqrt, pow
 from typing import Self
 
 from src.constants import ROBOT_DEPTH, ROBOT_WIDTH, PLAYING_AREA_DEPTH, PLAYING_AREA_WIDTH
@@ -7,6 +9,22 @@ class Zone(ABC):
     @abstractmethod
     def zone_with_robot_size(self) -> Self:
         raise NotImplementedError()
+    
+    @abstractmethod
+    def points_in_zone(self) -> list[tuple[int, int]]:
+        raise NotImplementedError()
+    
+    class Rounding(Enum):
+        Minimum = 0
+        Maximum = 1
+        
+    def int_coordinates(self, coordinate: float, side: Rounding) -> int:
+        if int(coordinate) == coordinate:
+            return int(coordinate)
+        elif side == Zone.Rounding.Minimum:
+            return floor(coordinate)
+        else:
+            return ceil(coordinate)
 
 class Rectangle(Zone):
     _x_min: float
@@ -29,6 +47,13 @@ class Rectangle(Zone):
             min(PLAYING_AREA_DEPTH, self._y_max + robot_max_dimension)
         )
     
+    def points_in_zone(self) -> list[tuple[int, int]]:
+        points: list[tuple[int, int]] = []
+        for x in range(self.int_coordinates(self._x_min, Zone.Rounding.Minimum), self.int_coordinates(self._x_max, Zone.Rounding.Maximum) + 1):
+            for y in range(self.int_coordinates(self._y_min, Zone.Rounding.Minimum), self.int_coordinates(self._y_max, Zone.Rounding.Maximum) + 1):
+                points.append((x, y))
+        return points
+    
 class Circle(Zone):
     _x_center: float
     _y_center: float
@@ -42,3 +67,17 @@ class Circle(Zone):
     def zone_with_robot_size(self) -> Self:
         robot_max_dimension = max(ROBOT_DEPTH, ROBOT_WIDTH)
         return Circle(self._x_center, self._y_center, self._radius + robot_max_dimension)
+    
+    def points_in_zone(self) -> list[tuple[int, int]]:
+        points: list[tuple[int, int]] = []
+        x_min = self.int_coordinates(max(0, self._x_center - self._radius), Zone.Rounding.Minimum)
+        y_min = self.int_coordinates(max(0, self._y_center - self._radius), Zone.Rounding.Minimum)
+        x_max = self.int_coordinates(min(PLAYING_AREA_WIDTH, self._x_center + self._radius), Zone.Rounding.Maximum)
+        y_max = self.int_coordinates(min(PLAYING_AREA_DEPTH, self._y_center + self._radius), Zone.Rounding.Maximum)
+
+        for x in range(x_min, x_max + 1):
+            for y in range(y_min, y_max + 1):
+                if (sqrt(pow(x - self._x_center, 2) + pow(y - self._y_center, 2)) < self._radius):
+                    points.append((x, y))
+
+        return points

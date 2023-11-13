@@ -39,6 +39,20 @@ class PlayingArea:
             PotArea(has_pots=True, zone=Circle(2965, 1387.5, 125))
         ]
 
+    def get_obstacles(self) -> list[tuple[int, int]]:
+        obstacles: list[tuple[int, int]] = []
+        for start_area in self.start_areas:
+            if start_area.is_reserved:
+                obstacles += start_area.zone.zone_with_robot_size().points_in_zone()
+        for plant_area in self.plant_areas:
+            if plant_area.has_plants:
+                obstacles += plant_area.zone.zone_with_robot_size().points_in_zone()
+        for pot_area in self.pot_areas:
+            if pot_area.has_pots:
+                obstacles += pot_area.zone.zone_with_robot_size().points_in_zone()
+
+        return obstacles
+
     def get_next_pot(self) -> tuple[float, float, float]:
         return (0, 0, 0)
 

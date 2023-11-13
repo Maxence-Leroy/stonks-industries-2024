@@ -293,6 +293,7 @@ class Move(Action):
     def __init__(
         self,
         destination: Location,
+        pathfinding: bool = True,
         forced_angle: bool = False,
         backwards: bool = False,
         timer_limit: float = MATCH_TIME,
@@ -324,6 +325,7 @@ class Move(Action):
                 
         super().__init__(timer_limit, can_be_executed, affect_state)
         self.destination = destination
+        self.pathfinding = pathfinding
         self.forced_angle = forced_angle
         self.backwards = backwards
 
@@ -332,7 +334,7 @@ class Move(Action):
 
     async def go_to_location(self) -> None:
         (x, y, theta) = self.destination.getLocation()
-        await robot.go_to(x, y, theta, self.backwards, self.forced_angle)
+        await robot.go_to(x, y, theta, self.backwards, self.forced_angle, self.pathfinding)
 
     execute: Callable[[Self], Awaitable[None]] = go_to_location
 
