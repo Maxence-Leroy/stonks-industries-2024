@@ -95,9 +95,10 @@ class Robot:
         self, x: float, y: float, theta: float, backwards: bool, forced_angle: bool, pathfinding: bool
     ) -> None:
         """Function to move to specific coordinates. Returns when the Arduino has sent "DONE"."""
-        self.d_star.init(playing_area.get_obstacles(), int(self.current_location.x), int(self.current_location.y), int(x), int(y))
+        obstacles = playing_area.get_obstacles()
+        self.d_star.init(obstacles, int(self.current_location.x), int(self.current_location.y), int(x), int(y))
         self.d_star.compute_shortest_path()
-        compute_thread = threading.Thread(target=self.d_star.main())
+        compute_thread = threading.Thread(target=self.d_star.main)
         compute_thread.start()
 
         path = self.d_star.compute_current_path()
@@ -105,9 +106,9 @@ class Robot:
         for point in path:
             if instruction != "":
                 instruction += ","
-            instruction += f"({point[0]};{point[1]};{0};{"1" if backwards else "0"};0),"
+            instruction += f"({point[0]*10};{point[1]*10};{0};{"1" if backwards else "0"};0)"
 
-        instruction += f"({x};{y};{theta};{"1" if backwards else "0"};{"1" if forced_angle else "0"})\n"
+        instruction += f",({x};{y};{theta};{"1" if backwards else "0"};{"1" if forced_angle else "0"})\n"
         self.stepper_motors.write(instruction)
         self.is_moving = True
         while self.is_moving:

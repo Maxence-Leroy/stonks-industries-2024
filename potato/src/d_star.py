@@ -41,8 +41,8 @@ class DStarLite:
     u: list[tuple[Node, tuple[float, float]]]
     km: float
     kold: tuple[float, float]
-    rhs: NDArray[Shape["3000, 2000"], Float]
-    g: NDArray[Shape["3000, 2000"], Float]
+    rhs: NDArray[Shape["300, 200"], Float]
+    g: NDArray[Shape["300, 200"], Float]
     detected_obstacles_xy: NDArray[Shape["*, 2"], Int]
     spoofed_obstacles: list[Node]
     path: list[tuple[int, int]]
@@ -54,16 +54,18 @@ class DStarLite:
         self.km = 0.0
         self.kold = (0.0, 0.0)
 
-    def set_start(self, x: int, y: int):
-        self.start = Node(x, y)
+    def set_start(self, x: float, y: float):
+        self.start = Node(int(x / 10), int(y/10))
 
-    def init(self, obstacles: list[tuple[int, int]], start_x: int, start_y: int, goal_x: int, goal_y: int) -> None:
-        self.obstacles = [Node(obstacle[0], obstacle[1], 0) for obstacle in obstacles]
+    def init(self, obstacles: list[tuple[int, int]], start_x: float, start_y: float, goal_x: float, goal_y: float) -> None:
+        obstacle_set = set(obstacles)
+        print(len(obstacle_set))
+        self.obstacles = [Node(obstacle[0], obstacle[1]) for obstacle in obstacle_set]
         self.obstacles_xy = np.array(
             [[obstacle.x, obstacle.y] for obstacle in self.obstacles]
         )
-        self.start = Node(start_x, start_y)
-        self.goal = Node(goal_x, goal_y)
+        self.start = Node(int(start_x/10), int(start_y/10))
+        self.goal = Node(int(goal_x/10), int(goal_y/10))
         self.u = []
         self.km = 0.0
         self.kold = (0.0, 0.0)
@@ -76,7 +78,7 @@ class DStarLite:
         self.path = []
 
     def create_grid(self, val: float):
-        return np.full((PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH), val)
+        return np.full((int(PLAYING_AREA_WIDTH / 10), int(PLAYING_AREA_DEPTH /10)), val)
     
     def is_obstacle(self, node: Node) -> bool:
         x = np.array([node.x])
@@ -134,7 +136,7 @@ class DStarLite:
             )
 
     def is_valid(self, node: Node) -> bool:
-        if 0 <= node.x < PLAYING_AREA_WIDTH and 0 <= node.y < PLAYING_AREA_DEPTH:
+        if 0 <= node.x < PLAYING_AREA_WIDTH / 10 and 0 <= node.y < PLAYING_AREA_DEPTH / 10:
             return True
         return False
 
@@ -201,8 +203,8 @@ class DStarLite:
             rhs_not_equal_to_g = self.rhs[self.start.x][self.start.y] != \
                 self.g[self.start.x][self.start.y]
             
-    def add_obstacle(self, x: int, y: int) -> None:
-        self.spoofed_obstacles.append(Node(x, y))
+    def add_obstacle(self, x: float, y: float) -> None:
+        self.spoofed_obstacles.append(Node(int(x/10),int(y/10)))
             
     def detect_changes(self) -> list[Node]:
         changed_vertices: list[Node] = list()

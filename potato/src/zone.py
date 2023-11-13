@@ -49,8 +49,8 @@ class Rectangle(Zone):
     
     def points_in_zone(self) -> list[tuple[int, int]]:
         points: list[tuple[int, int]] = []
-        for x in range(self.int_coordinates(self._x_min, Zone.Rounding.Minimum), self.int_coordinates(self._x_max, Zone.Rounding.Maximum) + 1):
-            for y in range(self.int_coordinates(self._y_min, Zone.Rounding.Minimum), self.int_coordinates(self._y_max, Zone.Rounding.Maximum) + 1):
+        for x in range(int(self.int_coordinates(self._x_min, Zone.Rounding.Minimum)/ 10), int(self.int_coordinates(self._x_max, Zone.Rounding.Maximum) / 10) + 1):
+            for y in range(int(self.int_coordinates(self._y_min, Zone.Rounding.Minimum)/ 10), int(self.int_coordinates(self._y_max, Zone.Rounding.Maximum) / 10) + 1):
                 points.append((x, y))
         return points
     
@@ -70,14 +70,14 @@ class Circle(Zone):
     
     def points_in_zone(self) -> list[tuple[int, int]]:
         points: list[tuple[int, int]] = []
-        x_min = self.int_coordinates(max(0, self._x_center - self._radius), Zone.Rounding.Minimum)
-        y_min = self.int_coordinates(max(0, self._y_center - self._radius), Zone.Rounding.Minimum)
-        x_max = self.int_coordinates(min(PLAYING_AREA_WIDTH, self._x_center + self._radius), Zone.Rounding.Maximum)
-        y_max = self.int_coordinates(min(PLAYING_AREA_DEPTH, self._y_center + self._radius), Zone.Rounding.Maximum)
+        x_min = self.int_coordinates(max(0, self._x_center - self._radius), Zone.Rounding.Minimum) / 10
+        y_min = self.int_coordinates(max(0, self._y_center - self._radius), Zone.Rounding.Minimum) / 10
+        x_max = self.int_coordinates(min(PLAYING_AREA_WIDTH, self._x_center + self._radius), Zone.Rounding.Maximum) / 10
+        y_max = self.int_coordinates(min(PLAYING_AREA_DEPTH, self._y_center + self._radius), Zone.Rounding.Maximum) / 10
 
-        for x in range(x_min, x_max + 1):
-            for y in range(y_min, y_max + 1):
-                if (sqrt(pow(x - self._x_center, 2) + pow(y - self._y_center, 2)) < self._radius):
+        for x in range(int(x_min), int(x_max + 1)):
+            for y in range(int(y_min), int(y_max + 1)):
+                if (sqrt(pow(x * 10 - self._x_center, 2) + pow(y * 10 - self._y_center, 2)) < self._radius):
                     points.append((x, y))
 
         return points
