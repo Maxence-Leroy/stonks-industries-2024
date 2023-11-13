@@ -37,14 +37,15 @@ void handleInitialPosition(String command)
     setInitialPosition(coordinates[0].toDouble(), coordinates[1].toDouble(), Angle(coordinates[2].toDouble()));
 }
 
-void handleMoveCommand(String command)
+void handleDestination(String destinationString)
 {
     if(LOGGING)
     {
-        Serial.println("Move command");
+        Serial.print("destination string ");
+        Serial.println(destinationString);
     }
     String coordinates[5];
-    extractCoordinates(command, coordinates);
+    extractCoordinates(destinationString, coordinates);
     Destination* destination = new Destination(
         coordinates[0].toDouble(),
         coordinates[1].toDouble(),
@@ -52,6 +53,28 @@ void handleMoveCommand(String command)
         coordinates[3].toInt() == 1,
         coordinates[4].toInt() == 1);
     addDestination(destination);
+}
+
+void handleMoveCommand(String command)
+{
+    if(LOGGING)
+    {
+        Serial.println("Move command");
+    }
+    while (command.length() > 0)
+    {
+        int index = command.indexOf(',');
+        if (index == -1) // No space found
+        {
+            handleDestination(command);
+            break;
+        }
+        else
+        {
+            handleDestination(command.substring(0, index));
+            command = command.substring(index+1);
+        }
+    }
 }
 
 void handleStopCommand()
