@@ -4,6 +4,7 @@ import time
 
 from src.constants import MATCH_TIME
 from src.d_star import DStarLite
+from src.playing_area import playing_area
 from src.robot_actuator import create_robot_binary_actuator
 from src.robot_stepper_motors import create_stepper_motors
 from src.location import Coordinates
@@ -75,6 +76,7 @@ class Robot:
                 theta = float(coordinates[2])
                 logging_debug(f"Current robot position {x},{y},{theta}")
                 self.current_location = Coordinates(x, y, theta)
+                self.d_star.set_start(int(x), int(y))
 
     def set_initial_position(self, location: Coordinates) -> None:
         self.current_location = location
@@ -93,8 +95,19 @@ class Robot:
         self, x: float, y: float, theta: float, backwards: bool, forced_angle: bool, pathfinding: bool
     ) -> None:
         """Function to move to specific coordinates. Returns when the Arduino has sent "DONE"."""
+        self.d_star.init(playing_area.get_obstacles(), int(self.current_location.x), int(self.current_location.y), int(x), int(y))
+        self.d_star.compute_shortest_path()
+        compute_thread = threading.Thread(target=self.d_star.main())
+        compute_thread.start()
 
-        instruction = f"({x};{y};{theta};{"1" if backwards else "0"};{"1" if forced_angle else "0"})\n"
+        path = self.d_star.compute_current_path()
+        instruction = ""
+        for point in path:
+            if instruction != "":
+                instruction += ","
+            instruction += f"({point[0]};{point[1]};{0};{"1" if backwards else "0"};0),"
+
+        instruction += f"({x};{y};{theta};{"1" if backwards else "0"};{"1" if forced_angle else "0"})\n"
         self.stepper_motors.write(instruction)
         self.is_moving = True
         while self.is_moving:

@@ -54,6 +54,9 @@ class DStarLite:
         self.km = 0.0
         self.kold = (0.0, 0.0)
 
+    def set_start(self, x: int, y: int):
+        self.start = Node(x, y)
+
     def init(self, obstacles: list[tuple[int, int]], start_x: int, start_y: int, goal_x: int, goal_y: int) -> None:
         self.obstacles = [Node(obstacle[0], obstacle[1], 0) for obstacle in obstacles]
         self.obstacles_xy = np.array(
@@ -217,16 +220,16 @@ class DStarLite:
             self.spoofed_obstacles = list()
         return changed_vertices
     
-    def compute_current_path(self) -> list[Node]:
-        path: list[Node] = list()
+    def compute_current_path(self) -> list[tuple[int, int]]:
+        path: list[tuple[int, int]] = list()
         current_point = Node(self.start.x, self.start.y)
         while not nodes_have_same_coordinates(current_point, self.goal):
-            path.append(current_point)
+            path.append((current_point.x, current_point.y))
             current_point = min(self.succ(current_point),
                                 key=lambda sprime:
                                 self.cost(current_point, sprime) +
                                 self.g[sprime.x][sprime.y])
-        path.append(self.goal)
+        path.append((self.goal.x, self.goal.y))
         return path
 
     def compare_paths(self, path1: list[Node], path2: list[Node]):
