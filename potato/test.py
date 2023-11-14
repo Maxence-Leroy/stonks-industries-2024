@@ -58,22 +58,21 @@ class DStarLight:
     path: list[State]
     points_in_u: dict[State, tuple[float, float]]
 
-    def plot(self):
-        pl.subplots(1, 1, figsize=(10,10))
-        pl.plot(self.s_goal.value[0], self.s_goal.value[1], "ob")
-        pl.plot(self.s_start.value[0], self.s_start.value[1], "og")
-        for x in range(0,30):
-            for y in range(0,20):
-                pl.text(x, y, f"{round(self.g[x, y], 2)}\n{round(self.rhs[x, y], 2)}", color="red", fontsize=6)
+    # def plot(self):
+    #     pl.subplots(1, 1, figsize=(10,10))
+    #     pl.plot(self.s_goal.value[0], self.s_goal.value[1], "ob")
+    #     pl.plot(self.s_start.value[0], self.s_start.value[1], "og")
+    #     for x in range(0,30):
+    #         for y in range(0,20):
+    #             pl.text(x, y, f"{round(self.g[x, y], 2)}\n{round(self.rhs[x, y], 2)}", color="red", fontsize=6)
         
-        pl.pause(0.00000001)
-        print("Wait")
+    #     pl.pause(0.00000001)
+    #     print("Wait")
 
     def heuristic(self, p: State, q: State) -> float:
         return round(math.sqrt((p.to_float()[0] - q.to_float()[0]) ** 2 + (p.to_float()[1] - q.to_float()[1]) ** 2), 3)
 
     def calculate_key(self, s: State) -> tuple[float, float]:
-        # print(f"{s} {self.g[s.value]} {self.rhs[s.value]} {self.heuristic(self.s_start, s)}")
         (a, b) = (min(self.g[s.value],self.rhs[s.value]) + self.heuristic(self.s_start, s) + self.k_m , min(self.g[s.value], self.rhs[s.value]))
         return (round(a, 20), round(b, 20))
     
@@ -107,7 +106,6 @@ class DStarLight:
             State(x, y+1),
             State(x+1, y),
             State(x-1, y),
-            
         ]
 
         return list(filter(lambda u: self.state_is_valid(u), prevs))
@@ -158,28 +156,28 @@ class DStarLight:
         s_7 =  State(s.value[0], s.value[1] - 1)
         s_8 =  State(s.value[0] + 1, s.value[1] - 1)
 
-        if self.state_is_valid(s_1) and self.state_is_valid(s_2):
+        if self.state_is_valid(s_1) and self.state_is_valid(s_2) and (s_1 in s.succs or s_2 in s.succs):
             nbrs.append((s_1, s_2))
 
-        if self.state_is_valid(s_2) and self.state_is_valid(s_3):
+        if self.state_is_valid(s_2) and self.state_is_valid(s_3) and (s_2 in s.succs or s_3 in s.succs):
             nbrs.append((s_2, s_3))
 
-        if self.state_is_valid(s_3) and self.state_is_valid(s_4):
+        if self.state_is_valid(s_3) and self.state_is_valid(s_4) and (s_3 in s.succs or s_4 in s.succs):
             nbrs.append((s_3, s_4))
 
-        if self.state_is_valid(s_4) and self.state_is_valid(s_5):
+        if self.state_is_valid(s_4) and self.state_is_valid(s_5) and (s_4 in s.succs or s_5 in s.succs):
             nbrs.append((s_4, s_5))
 
-        if self.state_is_valid(s_5) and self.state_is_valid(s_6):
+        if self.state_is_valid(s_5) and self.state_is_valid(s_6) and (s_5 in s.succs or s_6 in s.succs):
             nbrs.append((s_5, s_6))
 
-        if self.state_is_valid(s_6) and self.state_is_valid(s_7):
+        if self.state_is_valid(s_6) and self.state_is_valid(s_7) and (s_6 in s.succs or s_7 in s.succs):
             nbrs.append((s_6, s_7))
 
-        if self.state_is_valid(s_7) and self.state_is_valid(s_8):
+        if self.state_is_valid(s_7) and self.state_is_valid(s_8) and (s_7 in s.succs or s_8 in s.succs):
             nbrs.append((s_7, s_8))
 
-        if self.state_is_valid(s_8) and self.state_is_valid(s_1):
+        if self.state_is_valid(s_8) and self.state_is_valid(s_1) and (s_8 in s.succs or s_1 in s.succs):
             nbrs.append((s_8, s_1))
 
         return nbrs
@@ -208,32 +206,24 @@ class DStarLight:
             if key[0] != np.inf:
                 u_key = key
                 if (u_key, u) not in self.u.queue:
-                    # print(f"Adding {u} update {self.g[u.value]} {self.rhs[u.value]}")
                     self.points_in_u[u] = key
                     self.u.put_nowait((key, u))
 
     def compute_shortest_path(self):
         while self.u.queue[0][0] < self.calculate_key(self.s_start) or self.rhs[self.s_start.value] != self.g[self.s_start.value]:
-            # print(f"queue {self.u.queue[:3]}")
             _, u = self.u.get_nowait()
             self.points_in_u.pop(u)
-            # print(k_old, u)
-            # print(f"compute {u}")
             if self.g[u.value] > self.rhs[u.value]:
                 self.g[u.value] = self.rhs[u.value]
-                #self.plot()
 
                 previouses = self.prev(u)
-                # print(f"{previouses} no inf")
                 for prev in previouses:
                     prev.succs.append(u)
                     self.update_vertex(prev)
             else:
                 self.g[u.value] = np.inf
-                #self.plot()
                 self.update_vertex(u)
                 previouses = self.prev(u)
-                # print(f"{previouses} inf")
                 for prev in previouses:
                     prev.succs.append(u)
                     self.update_vertex(prev)
@@ -314,7 +304,6 @@ def main():
     d_star = DStarLight(State(0,0),State(29,19), costs)
     d_star.main()
     intermediate = time.time()
-    # d_star.plot()
 
     path = d_star.get_path()
     end = time.time()
@@ -335,7 +324,6 @@ def main():
     for u in path:
         x.append(u.to_float()[0])
         y.append(u.to_float()[1])
-        # print(u.to_float())
 
     pl.plot(x, y, '-r')
     pl.imshow(costs.transpose() > 1, aspect='auto', interpolation='nearest' )
