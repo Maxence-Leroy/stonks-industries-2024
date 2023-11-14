@@ -232,7 +232,6 @@ class DStarLight:
     def compute_shortest_path(self, after_obstacle: bool):
         while self.u.queue[0][0] < self.calculate_key(self.s_start) or self.rhs[self.s_start.value] != self.g[self.s_start.value]:
             _, u = self.u.get_nowait()
-            print(u)
             self.points_in_u.pop(u)
             if self.g[u.value] > self.rhs[u.value]:
                 self.g[u.value] = self.rhs[u.value]
@@ -247,7 +246,7 @@ class DStarLight:
     def get_best_interpolated_child(self, s: State) -> InterpolatedState:
         interpolated_children: PriorityQueue[tuple[float, InterpolatedState]] = PriorityQueue()
         x, y = s.value
-        division = 10
+        division = 5
         for j in range(-division,division + 1):
             child = InterpolatedState(x+1, y + j/division)
             if self.state_is_valid(child):

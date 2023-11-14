@@ -84,7 +84,6 @@ class Circle(Zone):
         X, Y = np.ogrid[:width, :height]
         dist_from_center = np.sqrt((X-x_center)**2 + (Y-y_center)**2)
         mask = np.ceil(dist_from_center) <= radius
-        print(dist_from_center)
         return mask
     
     def __str__(self) -> str:

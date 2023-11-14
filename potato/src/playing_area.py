@@ -5,6 +5,8 @@ from src.constants import Side, PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH, D_STAR_F
 from src.game_elements import PlantArea, PotArea, StartArea
 from src.zone import Circle, Rectangle
 
+BIG_NUMBER = 10**10
+
 class PlayingArea:
     """Class represenging the playing area.
     
@@ -49,22 +51,13 @@ class PlayingArea:
     def compute_costs(self):
         for start_area in self.start_areas:
             if start_area.is_reserved and start_area.side != self.side:
-                zone = start_area.zone.zone_with_robot_size()
-                print(zone)
-                print(zone.points_in_zone())
-                self.cost[start_area.zone.zone_with_robot_size().points_in_zone()] = np.inf
+                self.cost[start_area.zone.zone_with_robot_size().points_in_zone()] = BIG_NUMBER
         for plant_area in self.plant_areas:
             if plant_area.has_plants:
-                zone = plant_area.zone.zone_with_robot_size()
-                print(zone)
-                print(zone.points_in_zone())
-                self.cost[plant_area.zone.zone_with_robot_size().points_in_zone()] = np.inf
+                self.cost[plant_area.zone.zone_with_robot_size().points_in_zone()] = BIG_NUMBER
         for pot_area in self.pot_areas:
             if pot_area.has_pots:
-                zone = pot_area.zone.zone_with_robot_size()
-                print(zone)
-                print(zone.points_in_zone())
-                self.cost[pot_area.zone.zone_with_robot_size().points_in_zone()] = np.inf
+                self.cost[pot_area.zone.zone_with_robot_size().points_in_zone()] = BIG_NUMBER
 
     def get_next_pot(self) -> tuple[float, float, float]:
         return (0, 0, 0)
