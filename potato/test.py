@@ -8,7 +8,7 @@ import matplotlib.pylab as pl
 from nptyping import NDArray, Float, Shape
 from queue import PriorityQueue
 import time
-from typing import Optional, Self
+from typing import Self
 
 class State:
     value: tuple[int, int]
@@ -56,7 +56,7 @@ class DStarLight:
     u: PriorityQueue[tuple[tuple[float, float], State]] 
     costs: NDArray[Shape["300,200"], Float]
     path: list[State]
-    points_in_u: dict[State, list[tuple[float, float]]]
+    points_in_u: dict[State, tuple[float, float]]
 
     def plot(self):
         pl.subplots(1, 1, figsize=(10,10))
@@ -89,7 +89,7 @@ class DStarLight:
         self.g = np.ones((30,20)) * np.inf
         self.rhs[self.s_goal.value] = 0
         goal_key = self.calculate_key(self.s_goal)
-        self.points_in_u[self.s_goal] = [goal_key]
+        self.points_in_u[self.s_goal] = goal_key
         self.u.put_nowait((goal_key, self.s_goal))
 
     def state_is_valid(self, u: State) -> bool:
@@ -197,42 +197,29 @@ class DStarLight:
                 self.rhs[u.value] = min_value
                 #elf.plot()
 
-        points_in_u = self.points_in_u.pop(u, [])
-        if len(points_in_u) > 0:
-            for key in points_in_u:
-                self.u.queue.remove((key, u))
-
+        try:
+            key = self.points_in_u[u]
+            self.u.queue.remove((key, u))
+        except:
+            pass
+                
         if self.g[u.value] != self.rhs[u.value]:
             key = self.calculate_key(u)
             if key[0] != np.inf:
                 u_key = key
                 if (u_key, u) not in self.u.queue:
                     # print(f"Adding {u} update {self.g[u.value]} {self.rhs[u.value]}")
-                    if u in self.points_in_u:
-                        self.points_in_u[u].append(key)
-                    else:
-                        self.points_in_u[u] = [key]
+                    self.points_in_u[u] = key
                     self.u.put_nowait((key, u))
 
     def compute_shortest_path(self):
         while self.u.queue[0][0] < self.calculate_key(self.s_start) or self.rhs[self.s_start.value] != self.g[self.s_start.value]:
             # print(f"queue {self.u.queue[:3]}")
-            k_old, u = self.u.get_nowait()
-            self.points_in_u[u].remove(k_old)
-            if len(self.points_in_u[u]) == 0:
-                self.points_in_u.pop(u)
+            _, u = self.u.get_nowait()
+            self.points_in_u.pop(u)
             # print(k_old, u)
             # print(f"compute {u}")
-            u_key = self.calculate_key(u)
-            if k_old < u_key:
-                if (u_key, u) not in self.u.queue:
-                    # print(f"Adding {u} kold")
-                    self.u.put_nowait((u_key, u))
-                    if u in self.points_in_u:
-                        self.points_in_u[u].append(u_key)
-                    else:
-                        self.points_in_u[u] = [u_key]
-            elif self.g[u.value] > self.rhs[u.value]:
+            if self.g[u.value] > self.rhs[u.value]:
                 self.g[u.value] = self.rhs[u.value]
                 #self.plot()
 
@@ -254,7 +241,7 @@ class DStarLight:
     def get_best_interpolated_child(self, s: State) -> InterpolatedState:
         interpolated_children: PriorityQueue[tuple[float, InterpolatedState]] = PriorityQueue()
         x, y = s.value
-        division = 25
+        division = 10
         for j in range(-division,division + 1):
             child = InterpolatedState(x+1, y + j/division)
             if self.state_is_valid(child):
@@ -319,13 +306,6 @@ class DStarLight:
         self.compute_shortest_path()
 
 def main():
-    pl.ioff()
-    pl.subplots(1, 1, figsize=(10,10))
-    pl.grid(True)
-    pl.axis("Equal")
-    pl.xlim([0,30])
-    pl.ylim([0,20])
-    pl.margins(0)
     start = time.time()
     costs = np.ones((30,20))
     costs[28, 10:20] = np.inf
@@ -333,12 +313,23 @@ def main():
     costs[0:25, 5] = np.inf
     d_star = DStarLight(State(0,0),State(29,19), costs)
     d_star.main()
+    intermediate = time.time()
     # d_star.plot()
-    pl.plot(0, 0, "ob")
-    pl.plot(29, 19, "og")
+
     path = d_star.get_path()
     end = time.time()
-    print(end-start)
+    print(intermediate - start)
+    print(end-intermediate)
+
+    pl.ioff()
+    pl.subplots(1, 1, figsize=(10,10))
+    pl.grid(True)
+    pl.axis("Equal")
+    pl.xlim([0,30])
+    pl.ylim([0,20])
+    pl.margins(0)
+    pl.plot(0, 0, "ob")
+    pl.plot(29, 19, "og")
     x: list[float] = []
     y: list[float] = []
     for u in path:
