@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from math import floor, ceil, sqrt, pow
+from math import floor, ceil
+import numpy as np
+from nptyping import NDArray, Bool, Shape
 from typing import Self
 
-from src.constants import ROBOT_DEPTH, ROBOT_WIDTH, PLAYING_AREA_DEPTH, PLAYING_AREA_WIDTH
+from src.constants import ROBOT_DEPTH, ROBOT_WIDTH, PLAYING_AREA_DEPTH, PLAYING_AREA_WIDTH, D_STAR_FACTOR
 
 class Zone(ABC):
     @abstractmethod
@@ -11,7 +13,7 @@ class Zone(ABC):
         raise NotImplementedError()
     
     @abstractmethod
-    def points_in_zone(self) -> list[tuple[int, int]]:
+    def points_in_zone(self) -> NDArray[Shape["300,200"], Bool]:
         raise NotImplementedError()
     
     class Rounding(Enum):
@@ -39,7 +41,7 @@ class Rectangle(Zone):
         self._y_max = y_max
 
     def zone_with_robot_size(self) -> Self:
-        robot_max_dimension = max(ROBOT_DEPTH, ROBOT_WIDTH)
+        robot_max_dimension = max(ROBOT_DEPTH, ROBOT_WIDTH) / 2
         return Rectangle(
             max(0, self._x_min - robot_max_dimension),
             max(0, self._y_min - robot_max_dimension),
@@ -47,12 +49,17 @@ class Rectangle(Zone):
             min(PLAYING_AREA_DEPTH, self._y_max + robot_max_dimension)
         )
     
-    def points_in_zone(self) -> list[tuple[int, int]]:
-        points: list[tuple[int, int]] = []
-        for x in range(int(self.int_coordinates(self._x_min, Zone.Rounding.Minimum)/ 10), int(self.int_coordinates(self._x_max, Zone.Rounding.Maximum) / 10) + 1):
-            for y in range(int(self.int_coordinates(self._y_min, Zone.Rounding.Minimum)/ 10), int(self.int_coordinates(self._y_max, Zone.Rounding.Maximum) / 10) + 1):
-                points.append((x, y))
-        return points
+    def points_in_zone(self) -> NDArray[Shape["60,40"], Bool]:
+        array = np.full((int(PLAYING_AREA_WIDTH / D_STAR_FACTOR), int(PLAYING_AREA_DEPTH / D_STAR_FACTOR)), False)
+        x_min = self.int_coordinates(self._x_min / D_STAR_FACTOR, Zone.Rounding.Minimum)
+        x_max = self.int_coordinates(self._x_max / D_STAR_FACTOR, Zone.Rounding.Maximum)
+        y_min = self.int_coordinates(self._y_min / D_STAR_FACTOR, Zone.Rounding.Minimum)
+        y_max = self.int_coordinates(self._y_max / D_STAR_FACTOR, Zone.Rounding.Maximum)
+        array[x_min:x_max+1, y_min:y_max+1] = True
+        return array
+    
+    def __str__(self) -> str:
+        return f"Rectangle ({self._x_min},{self._y_min}) -> ({self._x_max, self._y_max})"
     
 class Circle(Zone):
     _x_center: float
@@ -65,19 +72,20 @@ class Circle(Zone):
         self._radius = radius
 
     def zone_with_robot_size(self) -> Self:
-        robot_max_dimension = max(ROBOT_DEPTH, ROBOT_WIDTH)
+        robot_max_dimension = max(ROBOT_DEPTH, ROBOT_WIDTH) / 2
         return Circle(self._x_center, self._y_center, self._radius + robot_max_dimension)
     
-    def points_in_zone(self) -> list[tuple[int, int]]:
-        points: list[tuple[int, int]] = []
-        x_min = self.int_coordinates(max(0, self._x_center - self._radius), Zone.Rounding.Minimum) / 10
-        y_min = self.int_coordinates(max(0, self._y_center - self._radius), Zone.Rounding.Minimum) / 10
-        x_max = self.int_coordinates(min(PLAYING_AREA_WIDTH, self._x_center + self._radius), Zone.Rounding.Maximum) / 10
-        y_max = self.int_coordinates(min(PLAYING_AREA_DEPTH, self._y_center + self._radius), Zone.Rounding.Maximum) / 10
-
-        for x in range(int(x_min), int(x_max + 1)):
-            for y in range(int(y_min), int(y_max + 1)):
-                if (sqrt(pow(x * 10 - self._x_center, 2) + pow(y * 10 - self._y_center, 2)) < self._radius):
-                    points.append((x, y))
-
-        return points
+    def points_in_zone(self) -> NDArray[Shape["60,40"], Bool]:
+        x_center = int(self._x_center / D_STAR_FACTOR)
+        y_center = int(self._y_center / D_STAR_FACTOR)
+        radius = self._radius / D_STAR_FACTOR
+        width = int(PLAYING_AREA_WIDTH / D_STAR_FACTOR)
+        height = int(PLAYING_AREA_DEPTH / D_STAR_FACTOR)
+        X, Y = np.ogrid[:width, :height]
+        dist_from_center = np.sqrt((X-x_center)**2 + (Y-y_center)**2)
+        mask = np.ceil(dist_from_center) <= radius
+        print(dist_from_center)
+        return mask
+    
+    def __str__(self) -> str:
+        return f"Circle center({self._x_center},{self._y_center}) radius {self._radius}"

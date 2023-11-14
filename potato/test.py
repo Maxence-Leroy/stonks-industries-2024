@@ -1,6 +1,5 @@
 # pyright: reportUnknownMemberType=false
 
-from functools import reduce
 import matplotlib
 matplotlib.use('MacOSX')
 import math

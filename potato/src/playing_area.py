@@ -1,4 +1,7 @@
-from src.constants import Side
+import numpy as np
+from nptyping import NDArray, Float, Shape
+
+from src.constants import Side, PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH, D_STAR_FACTOR
 from src.game_elements import PlantArea, PotArea, StartArea
 from src.zone import Circle, Rectangle
 
@@ -10,8 +13,12 @@ class PlayingArea:
     start_areas: list[StartArea]
     plant_areas: list[PlantArea]
     pot_areas: list[PotArea]
+    cost: NDArray[Shape["60,40"], Float]
+    side: Side
+
 
     def __init__(self) -> None:
+        self.cost = np.full((int(PLAYING_AREA_WIDTH / D_STAR_FACTOR), int(PLAYING_AREA_DEPTH /D_STAR_FACTOR)), 1.0)
         self.start_areas = [
             StartArea(is_reserved=False, zone=Rectangle(0, 0, 450, 450), side=Side.BLUE),
             StartArea(is_reserved=False, zone=Rectangle(0, 775, 450, 1225), side=Side.YELLOW),
@@ -39,19 +46,25 @@ class PlayingArea:
             PotArea(has_pots=True, zone=Circle(2965, 1387.5, 125))
         ]
 
-    def get_obstacles(self) -> list[tuple[int, int]]:
-        obstacles: list[tuple[int, int]] = []
+    def compute_costs(self):
         for start_area in self.start_areas:
-            if start_area.is_reserved:
-                obstacles += start_area.zone.zone_with_robot_size().points_in_zone()
+            if start_area.is_reserved and start_area.side != self.side:
+                zone = start_area.zone.zone_with_robot_size()
+                print(zone)
+                print(zone.points_in_zone())
+                self.cost[start_area.zone.zone_with_robot_size().points_in_zone()] = np.inf
         for plant_area in self.plant_areas:
             if plant_area.has_plants:
-                obstacles += plant_area.zone.zone_with_robot_size().points_in_zone()
+                zone = plant_area.zone.zone_with_robot_size()
+                print(zone)
+                print(zone.points_in_zone())
+                self.cost[plant_area.zone.zone_with_robot_size().points_in_zone()] = np.inf
         for pot_area in self.pot_areas:
             if pot_area.has_pots:
-                obstacles += pot_area.zone.zone_with_robot_size().points_in_zone()
-
-        return obstacles
+                zone = pot_area.zone.zone_with_robot_size()
+                print(zone)
+                print(zone.points_in_zone())
+                self.cost[pot_area.zone.zone_with_robot_size().points_in_zone()] = np.inf
 
     def get_next_pot(self) -> tuple[float, float, float]:
         return (0, 0, 0)
