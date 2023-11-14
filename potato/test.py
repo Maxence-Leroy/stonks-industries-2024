@@ -25,14 +25,26 @@ class State:
         return self.value == other.value
     
     def __str__(self) -> str:
-        return str(self.value)
+        return str(self.to_float())
     
     def __repr__(self) -> str:
-        return str(self.value)
+        return str(self.to_float())
     
     def __hash__(self) -> int:
-        return hash(self.value)
+        return hash(self.to_float())
+    
+    def to_float(self) -> tuple[float, float]:
+        return self.value
 
+class InterpolatedState(State):
+    float_value: tuple[float, float]
+
+    def __init__(self, x: float, y: float):
+        super().__init__(int(x), int(y))
+        self.float_value = (x,y)
+
+    def to_float(self) -> tuple[float, float]:
+        return self.float_value
 
 class DStarLight:
     rhs: NDArray[Shape["300,200"], Float]
@@ -47,6 +59,7 @@ class DStarLight:
     points_in_u: dict[State, list[tuple[float, float]]]
 
     def plot(self):
+        pl.subplots(1, 1, figsize=(10,10))
         pl.plot(self.s_goal.value[0], self.s_goal.value[1], "ob")
         pl.plot(self.s_start.value[0], self.s_start.value[1], "og")
         for x in range(0,30):
@@ -55,10 +68,9 @@ class DStarLight:
         
         pl.pause(0.00000001)
         print("Wait")
-        pl.clf()
 
     def heuristic(self, p: State, q: State) -> float:
-        return round(math.sqrt((p.value[0] - q.value[0]) ** 2 + (p.value[1] - q.value[1]) ** 2), 3)
+        return round(math.sqrt((p.to_float()[0] - q.to_float()[0]) ** 2 + (p.to_float()[1] - q.to_float()[1]) ** 2), 3)
 
     def calculate_key(self, s: State) -> tuple[float, float]:
         # print(f"{s} {self.g[s.value]} {self.rhs[s.value]} {self.heuristic(self.s_start, s)}")
@@ -81,8 +93,8 @@ class DStarLight:
         self.u.put_nowait((goal_key, self.s_goal))
 
     def state_is_valid(self, u: State) -> bool:
-        (x, y) = u.value
-        return 0 <= x < 30 and 0 <= y < 20
+        (x, y) = u.to_float()
+        return 0 <= x <= 29 and 0 <= y <= 19
 
     def prev(self, u: State) -> list[State]:
         (x, y) = u.value
@@ -100,23 +112,90 @@ class DStarLight:
 
         return list(filter(lambda u: self.state_is_valid(u), prevs))
     
-    def c(self, p: State, q: State) -> float:
-        return self.heuristic(p, q) + self.costs[q.value]
-    
+    def is_diagonal(self, s1: State, s2: State) -> bool:
+        diff_x = abs(s2.value[0] - s1.value[0])
+        diff_y = abs(s2.value[1] - s1.value[1])
+        return diff_x + diff_y == 2
 
+    def c(self, s: State, s_a: State, s_b: State) -> float:
+        if self.is_diagonal(s_a, s):
+            s_1 = s_b
+            s_2 = s_a
+        else:
+            s_1 = s_a
+            s_2 = s_b
+        c = self.costs[s.value]
+        b = self.costs[s.value]
+        if min(b, c) == np.inf:
+            v_s = np.inf
+        elif self.g[s_1.value] <= self.g[s_2.value]:
+            v_s = min(b, c) + self.g[s_1.value]
+        else:
+            f = self.g[s_1.value] - self.g[s_2.value]
+            if f <= b:
+                if c <= f:
+                    v_s = c * math.sqrt(2) + self.g[s_2.value]
+                else:
+                    y = min(f / math.sqrt(c*c-f*f), 1)
+                    v_s = c* math.sqrt(1 + y*y) + f * (1-y) + self.g[s_2.value]
+            else:
+                if c <= b:
+                    v_s = c * math.sqrt(2) + self.g[s_2.value]
+                else:
+                    x = 1 - min(b/ math.sqrt(c*c-b*b), 1)
+                    v_s = c * math.sqrt(1 + (1-x)**2) + b * x + self.g[s_2.value]
+
+        return v_s
+    
+    def connbrs(self, s:State) -> list[tuple[State, State]]:
+        nbrs: list[tuple[State, State]] = []
+        s_1 = State(s.value[0] + 1, s.value[1])
+        s_2 =  State(s.value[0] + 1, s.value[1] + 1)
+        s_3 =  State(s.value[0], s.value[1] + 1)
+        s_4 =  State(s.value[0] - 1, s.value[1] + 1)
+        s_5 =  State(s.value[0] - 1, s.value[1])
+        s_6 =  State(s.value[0] - 1, s.value[1] - 1)
+        s_7 =  State(s.value[0], s.value[1] - 1)
+        s_8 =  State(s.value[0] + 1, s.value[1] - 1)
+
+        if self.state_is_valid(s_1) and self.state_is_valid(s_2):
+            nbrs.append((s_1, s_2))
+
+        if self.state_is_valid(s_2) and self.state_is_valid(s_3):
+            nbrs.append((s_2, s_3))
+
+        if self.state_is_valid(s_3) and self.state_is_valid(s_4):
+            nbrs.append((s_3, s_4))
+
+        if self.state_is_valid(s_4) and self.state_is_valid(s_5):
+            nbrs.append((s_4, s_5))
+
+        if self.state_is_valid(s_5) and self.state_is_valid(s_6):
+            nbrs.append((s_5, s_6))
+
+        if self.state_is_valid(s_6) and self.state_is_valid(s_7):
+            nbrs.append((s_6, s_7))
+
+        if self.state_is_valid(s_7) and self.state_is_valid(s_8):
+            nbrs.append((s_7, s_8))
+
+        if self.state_is_valid(s_8) and self.state_is_valid(s_1):
+            nbrs.append((s_8, s_1))
+
+        return nbrs
 
     def update_vertex(self, u: State) -> None:
         # print(f"update {u} {self.rhs[u.value]}")
         if u.value != self.s_goal.value:
             min_value = np.inf
-            for s_prime in u.succs:
-                value = self.c(u, s_prime) + self.g[s_prime.value]
+            for (s_prime, s_prime_prime) in self.connbrs(u):
+                value = self.c(u, s_prime, s_prime_prime)
                 if value <= min_value:
                     min_value = value
             if self.rhs[u.value] > min_value:
                 # print("Change rhs")
                 self.rhs[u.value] = min_value
-                # self.plot()
+                #elf.plot()
 
         points_in_u = self.points_in_u.pop(u, [])
         if len(points_in_u) > 0:
@@ -172,56 +251,104 @@ class DStarLight:
                     prev.succs.append(u)
                     self.update_vertex(prev)
 
+    def get_best_interpolated_child(self, s: State) -> InterpolatedState:
+        interpolated_children: PriorityQueue[tuple[float, InterpolatedState]] = PriorityQueue()
+        x, y = s.value
+        division = 25
+        for j in range(-division,division + 1):
+            child = InterpolatedState(x+1, y + j/division)
+            if self.state_is_valid(child):
+                if j < 0:
+                    cost = self.heuristic(child, s) + abs(j/division) * self.rhs[x+1,y-1] + (1-abs(j/division)) * self.rhs[x+1, y]
+                elif j > 0:
+                    cost = self.heuristic(child, s) + abs(j/division) * self.rhs[x+1, y+1] + (1-abs(j/division)) * self.rhs[x+1, y]
+                else:
+                    cost = 1 + self.rhs[x+1, y]
+                if not math.isnan(cost):
+                    interpolated_children.put_nowait((cost, child))
+            
+            child = InterpolatedState(x-1, y+j/division)
+            if self.state_is_valid(child):
+                if j < 0:
+                    cost = self.heuristic(child, s) + abs(j/division) * self.rhs[x-1,y-1] + (1-abs(j/division)) * self.rhs[x-1, y]
+                elif j > 0:
+                    cost = self.heuristic(child, s) + abs(j/division) * self.rhs[x-1, y+1] + (1-abs(j/division)) * self.rhs[x-1, y]
+                else:
+                    cost = 1 + self.rhs[x-1, y]
+                if not math.isnan(cost):
+                    interpolated_children.put_nowait((cost, child))
+
+
+        for i in range(-division,division + 1):
+            child = InterpolatedState(x + i /division, y + 1)
+            if self.state_is_valid(child):
+                if i < 0:
+                    cost = self.heuristic(child, s) + abs(i/division) * self.g[x-1,y+1] + (1-abs(i/division)) * self.g[x, y+1]
+                elif i > 0:
+                    cost = self.heuristic(child, s) + abs(i/division) * self.g[x+1, y+1] + (1-abs(i/division)) * self.g[x, y+1]
+                else:
+                    cost = 1 + self.g[x, y + 1]
+                if not math.isnan(cost):
+                    interpolated_children.put_nowait((cost, child))
+            
+            child = InterpolatedState(x + i /division, y - 1)
+            if self.state_is_valid(child):
+                if i < 0:
+                    cost = self.heuristic(child, s) + abs(i/division) * self.g[x-1,y-1] + (1-abs(i/division)) * self.g[x, y-1]
+                elif i > 0:
+                    cost = self.heuristic(child, s) + abs(i/division) * self.g[x+1, y-1] + (1-abs(i/division)) * self.g[x, y-1]
+                else:
+                    cost = 1 + self.g[x, y - 1]
+                if not math.isnan(cost):
+                    interpolated_children.put_nowait((cost, child))
+
+        (_, best) = interpolated_children.get_nowait()
+        return best
+    
+    def get_path(self) -> list[State]:
+        s = self.s_start
+        path = [s]
+        while s != self.s_goal:
+            s = self.get_best_interpolated_child(s)
+            path.append(s)
+        return path
+
+
     def main(self):
         self.s_last = self.s_start
         self.compute_shortest_path()
-        # print(self.g)
-        self.path.append(self.s_start)
-        while self.s_last.value != self.s_goal.value:
-            if self.g[self.s_last.value] == np.inf:
-                raise ValueError()
-            
-            min_value = np.inf
-            min_arg: Optional[State] = None
-            for s_prime in self.prev(self.s_last):
-                value = self.c(self.s_last, s_prime) + self.g[s_prime.value]
-                if value < min_value:
-                    min_value = value
-                    min_arg = s_prime
-            if not min_arg:
-                raise ValueError()
-            self.s_last = min_arg
-            self.path.append(self.s_last)
 
 def main():
-    # pl.ioff()
-    # pl.subplots(1, 1, figsize=(10,10))
-    # pl.grid(True)
-    # pl.axis("Equal")
-    # pl.xlim([0,30])
-    # pl.ylim([0,20])
-    # pl.margins(0)
+    pl.ioff()
+    pl.subplots(1, 1, figsize=(10,10))
+    pl.grid(True)
+    pl.axis("Equal")
+    pl.xlim([0,30])
+    pl.ylim([0,20])
+    pl.margins(0)
     start = time.time()
-    costs = np.ones((30,20)) * 0
+    costs = np.ones((30,20))
     costs[28, 10:20] = np.inf
     costs[5:30, 8] = np.inf
     costs[0:25, 5] = np.inf
     d_star = DStarLight(State(0,0),State(29,19), costs)
     d_star.main()
-    # pl.plot(0, 0, "ob")
-    # pl.plot(29, 19, "og")
+    # d_star.plot()
+    pl.plot(0, 0, "ob")
+    pl.plot(29, 19, "og")
+    path = d_star.get_path()
     end = time.time()
     print(end-start)
-    x: list[int] = []
-    y: list[int] = []
-    for u in d_star.path:
-        x.append(u.value[0])
-        y.append(u.value[1])
-        # print(u.value)
+    x: list[float] = []
+    y: list[float] = []
+    for u in path:
+        x.append(u.to_float()[0])
+        y.append(u.to_float()[1])
+        # print(u.to_float())
 
-    # pl.plot(x, y, '-r')
-    # pl.imshow(costs.transpose() > 1, aspect='auto', interpolation='nearest' )
-    # pl.show()
+    pl.plot(x, y, '-r')
+    pl.imshow(costs.transpose() > 1, aspect='auto', interpolation='nearest' )
+    pl.show()
     
 
 
