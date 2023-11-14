@@ -10,6 +10,8 @@ from queue import PriorityQueue
 import time
 from typing import Self
 
+WIDTH = 30
+DEPTH = 20
 class State:
     value: tuple[int, int]
     succs: list[Self]
@@ -84,8 +86,8 @@ class DStarLight:
         self.s_start = s_start
         self.s_goal = s_goal
         self.costs = costs
-        self.rhs = np.ones((30,20)) * np.inf
-        self.g = np.ones((30,20)) * np.inf
+        self.rhs = np.ones((WIDTH,DEPTH)) * np.inf
+        self.g = np.ones((WIDTH,DEPTH)) * np.inf
         self.rhs[self.s_goal.value] = 0
         goal_key = self.calculate_key(self.s_goal)
         self.points_in_u[self.s_goal] = goal_key
@@ -93,7 +95,7 @@ class DStarLight:
 
     def state_is_valid(self, u: State) -> bool:
         (x, y) = u.to_float()
-        return 0 <= x <= 29 and 0 <= y <= 19
+        return 0 <= x <= WIDTH - 1 and 0 <= y <= DEPTH - 1
 
     def prev(self, u: State) -> list[State]:
         (x, y) = u.value
@@ -297,11 +299,11 @@ class DStarLight:
 
 def main():
     start = time.time()
-    costs = np.ones((30,20))
-    costs[28, 10:20] = np.inf
-    costs[5:30, 8] = np.inf
-    costs[0:25, 5] = np.inf
-    d_star = DStarLight(State(0,0),State(29,19), costs)
+    costs = np.ones((WIDTH,DEPTH))
+    costs[WIDTH-2, int(DEPTH/2):DEPTH] = np.inf
+    costs[5:WIDTH, DEPTH-12] = np.inf
+    costs[0:WIDTH-5, int(DEPTH/4)] = np.inf
+    d_star = DStarLight(State(0,0),State(WIDTH-1,DEPTH-1), costs)
     d_star.main()
     intermediate = time.time()
 
@@ -314,11 +316,11 @@ def main():
     pl.subplots(1, 1, figsize=(10,10))
     pl.grid(True)
     pl.axis("Equal")
-    pl.xlim([0,30])
+    pl.xlim([0,WIDTH])
     pl.ylim([0,20])
     pl.margins(0)
     pl.plot(0, 0, "ob")
-    pl.plot(29, 19, "og")
+    pl.plot(WIDTH - 1, DEPTH - 1, "og")
     x: list[float] = []
     y: list[float] = []
     for u in path:
