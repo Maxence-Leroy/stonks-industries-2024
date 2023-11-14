@@ -29,6 +29,9 @@ class State:
     
     def __repr__(self) -> str:
         return str(self.value)
+    
+    def __hash__(self) -> int:
+        return hash(self.value)
 
 
 class DStarLight:
@@ -41,6 +44,7 @@ class DStarLight:
     u: PriorityQueue[tuple[tuple[float, float], State]] 
     costs: NDArray[Shape["300,200"], Float]
     path: list[State]
+    points_in_u: dict[State, list[tuple[float, float]]]
 
     def plot(self):
         pl.plot(self.s_goal.value[0], self.s_goal.value[1], "ob")
@@ -63,6 +67,7 @@ class DStarLight:
     
     def __init__(self, s_start: State, s_goal: State, costs: NDArray[Shape["300,200"], Float]) -> None:
         self.u = PriorityQueue()
+        self.points_in_u = {}
         self.path = []
         self.k_m = 0
         self.s_start = s_start
@@ -71,7 +76,9 @@ class DStarLight:
         self.rhs = np.ones((30,20)) * np.inf
         self.g = np.ones((30,20)) * np.inf
         self.rhs[self.s_goal.value] = 0
-        self.u.put_nowait((self.calculate_key(self.s_goal), self.s_goal))
+        goal_key = self.calculate_key(self.s_goal)
+        self.points_in_u[self.s_goal] = [goal_key]
+        self.u.put_nowait((goal_key, self.s_goal))
 
     def state_is_valid(self, u: State) -> bool:
         (x, y) = u.value
@@ -96,11 +103,7 @@ class DStarLight:
     def c(self, p: State, q: State) -> float:
         return self.heuristic(p, q) + self.costs[q.value]
     
-    def u_contains_state(self, s: State) -> Optional[tuple[float, float]]:
-        for item in self.u.queue:
-            if item[1] == s:
-                return item[0]
-        return None
+
 
     def update_vertex(self, u: State) -> None:
         # print(f"update {u} {self.rhs[u.value]}")
@@ -115,14 +118,10 @@ class DStarLight:
                 self.rhs[u.value] = min_value
                 # self.plot()
 
-        has_found_u = True
-        while has_found_u:
-            index = self.u_contains_state(u)
-            if index:
-                # print(f"Remove {u}")
-                self.u.queue.remove((index, u))
-            else:
-                has_found_u = False
+        points_in_u = self.points_in_u.pop(u, [])
+        if len(points_in_u) > 0:
+            for key in points_in_u:
+                self.u.queue.remove((key, u))
 
         if self.g[u.value] != self.rhs[u.value]:
             key = self.calculate_key(u)
@@ -130,12 +129,19 @@ class DStarLight:
                 u_key = key
                 if (u_key, u) not in self.u.queue:
                     # print(f"Adding {u} update {self.g[u.value]} {self.rhs[u.value]}")
+                    if u in self.points_in_u:
+                        self.points_in_u[u].append(key)
+                    else:
+                        self.points_in_u[u] = [key]
                     self.u.put_nowait((key, u))
 
     def compute_shortest_path(self):
         while self.u.queue[0][0] < self.calculate_key(self.s_start) or self.rhs[self.s_start.value] != self.g[self.s_start.value]:
             # print(f"queue {self.u.queue[:3]}")
             k_old, u = self.u.get_nowait()
+            self.points_in_u[u].remove(k_old)
+            if len(self.points_in_u[u]) == 0:
+                self.points_in_u.pop(u)
             # print(k_old, u)
             # print(f"compute {u}")
             u_key = self.calculate_key(u)
@@ -143,6 +149,10 @@ class DStarLight:
                 if (u_key, u) not in self.u.queue:
                     # print(f"Adding {u} kold")
                     self.u.put_nowait((u_key, u))
+                    if u in self.points_in_u:
+                        self.points_in_u[u].append(u_key)
+                    else:
+                        self.points_in_u[u] = [u_key]
             elif self.g[u.value] > self.rhs[u.value]:
                 self.g[u.value] = self.rhs[u.value]
                 #self.plot()
