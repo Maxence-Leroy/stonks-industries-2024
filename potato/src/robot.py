@@ -8,7 +8,7 @@ from src.playing_area import playing_area
 from src.robot_actuator import create_robot_binary_actuator
 from src.robot_stepper_motors import create_stepper_motors
 from src.location import Coordinates
-from src.logging import logging_debug
+from src.logging import logging_debug, logging_info
 class Robot:
     """
     Class reprensatation of the robot
@@ -91,26 +91,34 @@ class Robot:
         self, x: float, y: float, theta: float, backwards: bool, forced_angle: bool, pathfinding: bool
     ) -> None:
         """Function to move to specific coordinates. Returns when the Arduino has sent "DONE"."""
-        current_x = int(self.current_location.x / D_STAR_FACTOR)
-        current_y = int(self.current_location.y / D_STAR_FACTOR)
+        if pathfinding:
+            start = time.time()
+            current_x = int(self.current_location.x / D_STAR_FACTOR)
+            current_y = int(self.current_location.y / D_STAR_FACTOR)
 
-        goal_x = int(x / D_STAR_FACTOR)
-        goal_y = int(y / D_STAR_FACTOR)
+            goal_x = int(x / D_STAR_FACTOR)
+            goal_y = int(y / D_STAR_FACTOR)
 
-        d_star = DStarLight(State(current_x, current_y), State(goal_x, goal_y), playing_area.cost)
-        d_star.compute_shortest_path(False)
-        path = d_star.get_path()
-        instruction = ""
-        is_even = False
-        for point in path:
-            is_even = not is_even
-            if is_even:
-                continue
-            if instruction != "":
-                instruction += ","
-            instruction += f"({point.to_float()[0]*D_STAR_FACTOR};{point.to_float()[1]*D_STAR_FACTOR};{0};{"1" if backwards else "0"};0)"
+            d_star = DStarLight(State(current_x, current_y), State(goal_x, goal_y), playing_area.cost)
+            d_star.compute_shortest_path(False)
+            path = d_star.get_path()
+            logging_info(f"Pathfinding found in {time.time() - start} seconds")
+            logging_debug(str(path))
+            instruction = ""
+            is_even = False
+            for point in path:
+                is_even = not is_even
+                if is_even:
+                    continue
+                if instruction != "":
+                    instruction += ","
+                instruction += f"({point.to_float()[0]*D_STAR_FACTOR};{point.to_float()[1]*D_STAR_FACTOR};{0};{"1" if backwards else "0"};0)"
 
-        instruction += f",({x};{y};{theta};{"1" if backwards else "0"};{"1" if forced_angle else "0"})\n"
+            instruction += f",({x};{y};{theta};{"1" if backwards else "0"};{"1" if forced_angle else "0"})\n"
+        else:
+            logging_info("No pathfinding used")
+            instruction = f"({x};{y};{theta};{"1" if backwards else "0"};{"1" if forced_angle else "0"})\n"
+
         self.stepper_motors.write(instruction)
         self.is_moving = True
         while self.is_moving:
