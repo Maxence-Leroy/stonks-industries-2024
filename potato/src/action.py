@@ -231,6 +231,10 @@ class ActionsSequence(Action):
 
     execute: Callable[[Self], Awaitable[None]] = execute_multiple_actions
 
+    def handle_timeout_error_while_doing(self) -> None:
+        for action in self.actions:
+            action.handle_timeout_error_while_doing()
+
 
 class ActionsInParallel(Action):
     """Group of actions. They are launched at the same time all together. 

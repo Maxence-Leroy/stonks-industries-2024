@@ -101,7 +101,11 @@ class Robot:
         d_star.compute_shortest_path(False)
         path = d_star.get_path()
         instruction = ""
+        is_even = False
         for point in path:
+            is_even = not is_even
+            if is_even:
+                continue
             if instruction != "":
                 instruction += ","
             instruction += f"({point.value[0]*D_STAR_FACTOR};{point.value[1]*D_STAR_FACTOR};{0};{"1" if backwards else "0"};0)"
