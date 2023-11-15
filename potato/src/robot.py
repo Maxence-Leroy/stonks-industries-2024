@@ -9,6 +9,7 @@ from src.robot_actuator import create_robot_binary_actuator
 from src.robot_stepper_motors import create_stepper_motors
 from src.location import Coordinates
 from src.logging import logging_debug, logging_info
+from src.path_smoother import smooth_path
 class Robot:
     """
     Class reprensatation of the robot
@@ -105,14 +106,12 @@ class Robot:
             logging_info(f"Pathfinding found in {time.time() - start} seconds")
             logging_debug(str(path))
             instruction = ""
-            is_even = False
-            for point in path:
-                is_even = not is_even
-                if is_even:
-                    continue
+            path_as_tuples = list(map(lambda x: (x.to_float()[0], x.to_float()[1]), path))
+            smoothed_path = smooth_path(path_as_tuples)
+            for point in smoothed_path:
                 if instruction != "":
                     instruction += ","
-                instruction += f"({point.to_float()[0]*D_STAR_FACTOR};{point.to_float()[1]*D_STAR_FACTOR};{0};{"1" if backwards else "0"};0)"
+                instruction += f"({round(point[0]*D_STAR_FACTOR, 2)};{round(point[1]*D_STAR_FACTOR, 2)};{0};{"1" if backwards else "0"};0)"
 
             instruction += f",({x};{y};{theta};{"1" if backwards else "0"};{"1" if forced_angle else "0"})\n"
         else:
