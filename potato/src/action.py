@@ -158,6 +158,11 @@ class Action:
             self.handle_timeout_error_while_doing()
             self.status = ActionStatus.TIMED_OUT
             raise ActionTimedOutException()
+        except asyncio.CancelledError:
+            logging_warning(f"Action cancelled{action_short}")
+            self.handle_timeout_error_while_doing()
+            self.status = ActionStatus.FAILED
+            raise ActionTimedOutException()
         except Exception as ex:
             logging_warning(f"Action failed {action_short}")
             self.status = ActionStatus.FAILED

@@ -5,7 +5,7 @@ import time
 from src.action import ActionsSequence, Move, Wait
 from src.constants import MATCH_TIME, Side
 from src.location import Coordinates
-from src.logging import logging_info, start
+from src.logging import logging_info, start, logging_error
 from src.playing_area import playing_area
 from src.robot import robot
 
@@ -21,7 +21,8 @@ def main():
             Wait(time=5.0),
             Move(
                 destination= Coordinates(0,0,0),
-                backwards=True
+                backwards=True,
+                pathfinding=False
             )
         ],
         allows_fail=False
@@ -36,7 +37,10 @@ def main():
 
     robot.start_time = time.time()
     start()
-    asyncio.run(strategy.exec())
+    try:
+        asyncio.run(strategy.exec())
+    except Exception as ex:
+        logging_error(f"Strategy failed: {ex}")
     logging_info(f"End of strategy")
 
 
