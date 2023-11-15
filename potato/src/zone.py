@@ -62,22 +62,22 @@ class Rectangle(Zone):
         return f"Rectangle ({self._x_min},{self._y_min}) -> ({self._x_max, self._y_max})"
     
 class Circle(Zone):
-    _x_center: float
-    _y_center: float
+    x_center: float
+    y_center: float
     _radius: float
 
     def __init__(self, x_center: float, y_center: float, radius: float) -> None:
-        self._x_center = x_center
-        self._y_center = y_center
+        self.x_center = x_center
+        self.y_center = y_center
         self._radius = radius
 
     def zone_with_robot_size(self) -> Self:
         robot_max_dimension = max(ROBOT_DEPTH, ROBOT_WIDTH) / 2
-        return Circle(self._x_center, self._y_center, self._radius + robot_max_dimension)
+        return Circle(self.x_center, self.y_center, self._radius + robot_max_dimension)
     
     def points_in_zone(self) -> NDArray[Shape["60,40"], Bool]:
-        x_center = int(self._x_center / D_STAR_FACTOR)
-        y_center = int(self._y_center / D_STAR_FACTOR)
+        x_center = int(self.x_center / D_STAR_FACTOR)
+        y_center = int(self.y_center / D_STAR_FACTOR)
         radius = self._radius / D_STAR_FACTOR
         width = int(PLAYING_AREA_WIDTH / D_STAR_FACTOR)
         height = int(PLAYING_AREA_DEPTH / D_STAR_FACTOR)
@@ -87,4 +87,4 @@ class Circle(Zone):
         return mask
     
     def __str__(self) -> str:
-        return f"Circle center({self._x_center},{self._y_center}) radius {self._radius}"
+        return f"Circle center({self.x_center},{self.y_center}) radius {self._radius}"

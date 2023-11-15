@@ -1,8 +1,11 @@
+from typing import Optional
 import numpy as np
+import math
 from nptyping import NDArray, Float, Shape
 
 from src.constants import Side, PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH, D_STAR_FACTOR
 from src.game_elements import PlantArea, PotArea, StartArea
+from src.logging import logging_warning
 from src.zone import Circle, Rectangle
 
 BIG_NUMBER = 10**10
@@ -59,8 +62,21 @@ class PlayingArea:
             if pot_area.has_pots:
                 self.cost[pot_area.zone.zone_with_robot_size().points_in_zone()] = BIG_NUMBER
 
-    def get_next_pot(self) -> tuple[float, float, float]:
-        return (0, 0, 0)
+    def get_closest_pot(self, current_x: float, current_y: float, current_theta: float) -> Optional[tuple[float, float, float]]:
+        min_distance = np.inf
+        min_arg: Optional[PotArea] = None
+        for pot_area in self.pot_areas:
+            if pot_area.has_pots:
+                distance = math.sqrt(math.pow(pot_area.zone.x_center - current_x, 2) + math.pow(pot_area.zone.y_center - current_y, 2))
+                if distance < min_distance:
+                    min_distance = distance
+                    min_arg = pot_area
+        if min_arg is None:
+            logging_warning("No pot found")
+            return None
+        vector = (min_arg.zone.x_center - current_x, min_arg.zone.y_center - current_y)
+        theta = math.atan2(vector[1], vector[0])
+        return (min_arg.zone.x_center, min_arg.zone.y_center, theta)
 
     def get_next_plant(self) -> tuple[float, float, float]:
         return (1, 1, 1)

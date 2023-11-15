@@ -24,6 +24,11 @@ class ActionTimedOutException(ActionFailedException):
 
     pass
 
+class GameElementNotAvailableException(ActionFailedException):
+    """Class to raise an error when needing a game element that is not available"""
+    
+    pass
+
 class ActionStatus(Enum):
     """Possible statuses of an action.
     
@@ -342,7 +347,10 @@ class Move(Action):
         return f"Move to {str(self.destination)} {super().__str__()}"
 
     async def go_to_location(self) -> None:
-        (x, y, theta) = self.destination.getLocation()
+        destination = self.destination.getLocation(robot.current_location.x, robot.current_location.y, robot.current_location.theta)
+        if destination is None:
+            raise GameElementNotAvailableException()
+        (x, y, theta) = destination
         await robot.go_to(x, y, theta, self.backwards, self.forced_angle, self.pathfinding)
 
     execute: Callable[[Self], Awaitable[None]] = go_to_location
