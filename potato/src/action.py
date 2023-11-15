@@ -4,7 +4,7 @@ from typing import Self
 from collections.abc import Callable, Awaitable
 
 from src.constants import MATCH_TIME
-from potato.src.location.location import Location
+from src.location.location import Location
 from src.logging import logging_info, logging_warning
 from src.robot import robot
 from src.robot_actuator import RobotBinaryActuator

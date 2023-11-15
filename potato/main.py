@@ -28,11 +28,17 @@ def main():
             Wait(1.0),
             Move(
                 destination=BestAvailable(ImportantLocation.POT),
-                pathfinding=True,
+                pathfinding=True
+            ),
+            Move(
+                destination=MoveForward(-200),
                 backwards=True
             ),
             Move(
-                destination=MoveForward(-10),
+                destination=RelativeMove(0, 0, math.pi),
+            ),
+            Move(
+                destination=MoveForward(-210),
                 backwards=True
             ),
             Wait(1.0),
