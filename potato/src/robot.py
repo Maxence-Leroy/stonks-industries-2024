@@ -108,7 +108,7 @@ class Robot:
                 continue
             if instruction != "":
                 instruction += ","
-            instruction += f"({point.value[0]*D_STAR_FACTOR};{point.value[1]*D_STAR_FACTOR};{0};{"1" if backwards else "0"};0)"
+            instruction += f"({point.to_float()[0]*D_STAR_FACTOR};{point.to_float()[1]*D_STAR_FACTOR};{0};{"1" if backwards else "0"};0)"
 
         instruction += f",({x};{y};{theta};{"1" if backwards else "0"};{"1" if forced_angle else "0"})\n"
         self.stepper_motors.write(instruction)
