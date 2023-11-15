@@ -1,28 +1,29 @@
+from dataclasses import dataclass
+from typing import Optional
+
 from src.constants import Side
+from src.location.location import Coordinates
 from src.zone import Circle, Rectangle
 
+@dataclass
 class StartArea():
     is_reserved: bool
     zone: Rectangle
     side: Side
 
-    def __init__(self, is_reserved: bool, zone: Rectangle, side: Side):
-        self.is_reserved = is_reserved
-        self.zone = zone
-        self.side = side
-
+@dataclass
 class PlantArea():
     has_plants: bool
     zone: Circle
 
-    def __init__(self, has_plants: bool, zone: Circle):
-        self.has_plants = has_plants
-        self.zone = zone
-
+@dataclass
 class PotArea():
     has_pots: bool
     zone: Circle
 
-    def __init__(self, has_pots: bool, zone: Circle):
-        self.has_pots = has_pots
-        self.zone = zone
+@dataclass
+class Planter():
+    has_pots: bool
+    coordinates: Coordinates
+    side: Side
+    blocked_by:Optional[PotArea]

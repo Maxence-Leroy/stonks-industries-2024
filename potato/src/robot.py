@@ -7,7 +7,7 @@ from src.d_star import DStarLight, State
 from src.playing_area import playing_area
 from src.robot_actuator import create_robot_binary_actuator
 from src.robot_stepper_motors import create_stepper_motors
-from src.location import Coordinates
+from potato.src.location.location import Coordinates
 from src.logging import logging_debug, logging_info
 from src.path_smoother import smooth_path
 class Robot:

@@ -4,7 +4,7 @@ from typing import Self
 from collections.abc import Callable, Awaitable
 
 from src.constants import MATCH_TIME
-from src.location import Location
+from potato.src.location.location import Location
 from src.logging import logging_info, logging_warning
 from src.robot import robot
 from src.robot_actuator import RobotBinaryActuator
@@ -307,7 +307,7 @@ class Move(Action):
     def __init__(
         self,
         destination: Location,
-        pathfinding: bool = True,
+        pathfinding: bool = False,
         forced_angle: bool = False,
         backwards: bool = False,
         timer_limit: float = MATCH_TIME,

@@ -1,28 +1,57 @@
 import asyncio
-from math import pi
+import math
 import time
 
 from src.action import ActionsSequence, Move, Wait
 from src.constants import MATCH_TIME, Side
-from src.location import Coordinates
+from src.location.location import MoveForward, Coordinates, RelativeMove
+from src.location.best_available import BestAvailable, ImportantLocation
 from src.logging import logging_info, start, logging_error
 from src.playing_area import playing_area
 from src.robot import robot
-
 
 def main():
     strategy = ActionsSequence(
         timer_limit=MATCH_TIME,
         actions=[
             Move(
-                destination=Coordinates(2990, 1990, pi / 2),
+                destination=BestAvailable(ImportantLocation.PLANT),
+                pathfinding=True
+            ),
+            Move(
+                destination = MoveForward(10)
+            ),
+            Move(
+                destination=MoveForward(-10),
+                backwards=True
+            ),
+            Wait(1.0),
+            Move(
+                destination=BestAvailable(ImportantLocation.POT),
+                pathfinding=True,
+                backwards=True
+            ),
+            Move(
+                destination=MoveForward(-10),
+                backwards=True
+            ),
+            Wait(1.0),
+            Move(
+                destination=BestAvailable(ImportantLocation.PLANTER),
+                pathfinding=True
+            ),
+            Move(
+                destination=RelativeMove(0, 0, math.pi),
                 forced_angle=True
             ),
-            Wait(time=5.0),
             Move(
-                destination= Coordinates(0,0,0),
-                backwards=True,
-                pathfinding=False
+                destination=MoveForward(-10),
+                backwards=True
+            ),
+            Wait(1.0),
+            Move(
+                destination=Coordinates(0, 0, 0),
+                pathfinding=True
             )
         ],
         allows_fail=False

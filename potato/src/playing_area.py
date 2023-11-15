@@ -3,8 +3,9 @@ import numpy as np
 import math
 from nptyping import NDArray, Float, Shape
 
-from src.constants import Side, PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH, D_STAR_FACTOR
-from src.game_elements import PlantArea, PotArea, StartArea
+from src.constants import ROBOT_DEPTH, Side, PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH, D_STAR_FACTOR
+from src.game_elements import PlantArea, Planter, PotArea, StartArea
+from src.location.location import Coordinates
 from src.logging import logging_warning
 from src.zone import Circle, Rectangle
 
@@ -18,6 +19,7 @@ class PlayingArea:
     start_areas: list[StartArea]
     plant_areas: list[PlantArea]
     pot_areas: list[PotArea]
+    planters: list[Planter]
     cost: NDArray[Shape["60,40"], Float]
     side: Side
 
@@ -51,6 +53,15 @@ class PlayingArea:
             PotArea(has_pots=True, zone=Circle(2965, 1387.5, 125))
         ]
 
+        self.planters = [
+            Planter(has_pots=False, coordinates=Coordinates(0, 612.5, math.pi), side=Side.YELLOW, blocked_by=self.pot_areas[1]),
+            Planter(has_pots=False, coordinates=Coordinates(0, 1387.5, math.pi), side=Side.BLUE, blocked_by=self.pot_areas[2]),
+            Planter(has_pots=False, coordinates=Coordinates(762.5, 2000, math.pi/2), side=Side.BLUE, blocked_by=None),
+            Planter(has_pots=False, coordinates=Coordinates(2237.5, 2000, math.pi/2), side=Side.YELLOW, blocked_by=None),
+            Planter(has_pots=False, coordinates=Coordinates(3000, 1387.5, 0), side=Side.YELLOW, blocked_by=self.pot_areas[5]),
+            Planter(has_pots=False, coordinates=Coordinates(3000, 612.5, 0), side=Side.BLUE, blocked_by=self.pot_areas[4]),
+        ]
+
     def compute_costs(self):
         for start_area in self.start_areas:
             if start_area.is_reserved and start_area.side != self.side:
@@ -78,11 +89,41 @@ class PlayingArea:
         theta = math.atan2(vector[1], vector[0])
         return (min_arg.zone.x_center, min_arg.zone.y_center, theta)
 
-    def get_next_plant(self) -> tuple[float, float, float]:
-        return (1, 1, 1)
+    def get_closest_plant(self, current_x: float, current_y: float, current_theta: float) -> Optional[tuple[float, float, float]]:
+        min_distance = np.inf
+        min_arg: Optional[PlantArea] = None
+        for plant_area in self.plant_areas:
+            if plant_area.has_plants:
+                distance = math.sqrt(math.pow(plant_area.zone.x_center - current_x, 2) + math.pow(plant_area.zone.y_center - current_y, 2))
+                if distance < min_distance:
+                    min_distance = distance
+                    min_arg = plant_area
+        if min_arg is None:
+            logging_warning("No plant found")
+            return None
+        vector = (min_arg.zone.x_center - current_x, min_arg.zone.y_center - current_y)
+        theta = math.atan2(vector[1], vector[0])
+        return (min_arg.zone.x_center, min_arg.zone.y_center, theta)
 
-    def get_next_planter(self) -> tuple[float, float, float]:
-        return (2, 2, 2)
+    def get_best_planter(self, current_x: float, current_y: float, current_theta: float) -> Optional[tuple[float, float, float]]:
+        min_distance = np.inf
+        min_arg: Optional[Planter] = None
+        for planter in self.planters:
+            if not planter.has_pots and (planter.blocked_by is None or not planter.blocked_by.has_pots):
+                distance = math.sqrt(math.pow(planter.coordinates.x - current_x, 2) + math.pow(planter.coordinates.y - current_y, 2))
+                if distance < min_distance:
+                    min_distance = distance
+                    min_arg = planter
+        if min_arg is None:
+            logging_warning("No planter found")
+            return None
+        x = min_arg.coordinates.x
+        y = min_arg.coordinates.y
+        theta = min_arg.coordinates.theta
+        x -= math.cos(theta) * ROBOT_DEPTH / 2
+        y -= math.sin(theta) * ROBOT_DEPTH / 2
+
+        return (x, y, theta)
 
     def get_solar_pannel_begin(self) -> tuple[float, float, float]:
         return (4, 4, 4)
