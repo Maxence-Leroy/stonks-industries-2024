@@ -8,6 +8,7 @@ from src.location.location import MoveForward, Coordinates, RelativeMove
 from src.location.best_available import BestAvailable, ImportantLocation
 from src.logging import logging_info, start, logging_error
 from src.playing_area import playing_area
+from src.replay.save_replay import start_replay
 from src.robot import robot
 
 def main():
@@ -72,6 +73,7 @@ def main():
 
     robot.start_time = time.time()
     start()
+    start_replay()
     try:
         asyncio.run(strategy.exec())
     except Exception as ex:

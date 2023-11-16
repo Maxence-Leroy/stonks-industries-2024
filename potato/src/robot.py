@@ -10,6 +10,8 @@ from src.robot_stepper_motors import create_stepper_motors
 from src.location.location import Coordinates
 from src.logging import logging_debug, logging_info
 from src.path_smoother import smooth_path
+from src.replay.base_classes import ReplayEvent, EventType
+from src.replay.save_replay import log_replay
 class Robot:
     """
     Class reprensatation of the robot
@@ -73,10 +75,22 @@ class Robot:
                 y = float(coordinates[1])
                 theta = float(coordinates[2])
                 logging_debug(f"Current robot position {x},{y},{theta}")
+                log_replay(
+                    ReplayEvent(
+                        event=EventType.ROBOT_POSITION,
+                        place=(x, y, theta)
+                    )
+                )
                 self.current_location = Coordinates(x, y, theta)
 
     def set_initial_position(self, location: Coordinates) -> None:
         self.current_location = location
+        log_replay(
+            ReplayEvent(
+                event=EventType.ROBOT_POSITION,
+                place=(location.x, location.y, location.theta)
+            )
+        )
         self.stepper_motors.write(f"INIT ({location.x};{location.y};{location.theta})\n")
 
     def stop_moving(self):
@@ -92,6 +106,12 @@ class Robot:
         self, x: float, y: float, theta: float, backwards: bool, forced_angle: bool, pathfinding: bool
     ) -> None:
         """Function to move to specific coordinates. Returns when the Arduino has sent "DONE"."""
+        log_replay(
+            ReplayEvent(
+                event=EventType.ROBOT_DESTINATION,
+                place=(x, y, theta)
+            )
+        )
         if pathfinding:
             start = time.time()
             current_x = int(self.current_location.x / D_STAR_FACTOR)
@@ -107,8 +127,14 @@ class Robot:
             logging_debug(str(path))
             instruction = ""
             path_as_tuples = list(map(lambda x: (x.to_float()[0], x.to_float()[1]), path))
-            smoothed_path = smooth_path(path_as_tuples)
+            smoothed_path = smooth_path(path_as_tuples) if len(path_as_tuples) > 1 else path_as_tuples
             for point in smoothed_path:
+                log_replay(
+                    ReplayEvent(
+                        event=EventType.ROBOT_PATHING,
+                        place=(point[0]*D_STAR_FACTOR, point[1] * D_STAR_FACTOR, 0)
+                    )
+                )
                 if instruction != "":
                     instruction += ","
                 instruction += f"({round(point[0]*D_STAR_FACTOR, 2)};{round(point[1]*D_STAR_FACTOR, 2)};{0};{"1" if backwards else "0"};0)"

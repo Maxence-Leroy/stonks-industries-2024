@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 import math
 from typing import Optional
 
@@ -10,7 +11,7 @@ class Location(ABC):
     def getLocation(self, current_x: float, current_y: float, current_theta: float) -> Optional[tuple[float, float, float]]:
         raise NotImplementedError()
 
-
+@dataclass
 class Coordinates(Location):
     """Location with "absolute" coordinates. They will be converted according to the side of the playing area."""
 
