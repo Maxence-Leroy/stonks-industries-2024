@@ -246,7 +246,7 @@ class DStarLight:
     def get_best_interpolated_child(self, s: State) -> InterpolatedState:
         interpolated_children: PriorityQueue[tuple[float, InterpolatedState]] = PriorityQueue()
         x, y = s.value
-        division = 5
+        division = 10
         for j in range(-division,division + 1):
             child = InterpolatedState(x+1, y + j/division)
             if self.state_is_valid(child):

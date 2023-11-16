@@ -12,11 +12,13 @@ save_replay: bool = True
 file: Optional[TextIOWrapper] = None
 
 def start_replay():
-    global file
     global start_match
     start_match = time.time()
+
+def open_replay_file():
+    global file
     if save_replay:
-        filename = f"replay/{str(int(start_match))}.log"
+        filename = f"replay/{str(int(time.time()))}.log"
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         file = open(filename, "w")
 
