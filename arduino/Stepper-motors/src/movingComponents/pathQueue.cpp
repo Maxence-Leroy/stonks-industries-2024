@@ -11,7 +11,7 @@
 Queue<Path>* queue = new Queue<Path>();
 Queue<Destination>* destinationQueue = new Queue<Destination>();
 
-const double maxSpeed = 500;
+const double maxSpeed = 750;
 const double maxAcceleration = 500;
 const double maxSpeedRotation = 2;
 const double maxAccelerationRotation = 2;
