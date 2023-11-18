@@ -309,8 +309,6 @@ class DStarLight:
     def add_obstacles(self, obstacles: list[State]):
         self.g[self.s_start.value] = np.inf
         self.rhs[self.s_start.value] = np.inf
-        for obstacle in obstacles:
-            self.costs[obstacle.value] = np.inf
         path_int = list(map(lambda x: x.value, self.path))
         obstacle_int = list(map(lambda x: x.value, obstacles))
         intersection = set(path_int).intersection(obstacle_int)

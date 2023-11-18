@@ -1,9 +1,11 @@
 import asyncio
+import numpy as np
 import threading
 import time
 
-from src.constants import MATCH_TIME, D_STAR_FACTOR
+from src.constants import MATCH_TIME, D_STAR_FACTOR, PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH
 from src.d_star import DStarLight, State
+from src.helpers.pairwise import pairwise
 from src.playing_area import playing_area
 from src.robot_actuator import create_robot_binary_actuator
 from src.robot_stepper_motors import create_stepper_motors
@@ -102,6 +104,25 @@ class Robot:
         self.stepper_motors.write(instruction)
         self.is_moving = False
 
+    def send_d_star_path(self, path: list[tuple[float, float]], x: float, y: float, theta: float, backwards: bool, forced_angle: bool):
+        logging_debug(str(path))
+        instruction = ""
+        smoothed_path = smooth_path(path) if len(path) > 1 else path
+        for point in smoothed_path:
+            log_replay(
+                ReplayEvent(
+                    event=EventType.ROBOT_PATHING,
+                    place=(point[0]*D_STAR_FACTOR, point[1] * D_STAR_FACTOR, 0)
+                )
+            )
+            if instruction != "":
+                instruction += ","
+            instruction += f"({round(point[0]*D_STAR_FACTOR, 2)};{round(point[1]*D_STAR_FACTOR, 2)};{0};{"1" if backwards else "0"};0)"
+
+            instruction += f",({x};{y};{theta};{"1" if backwards else "0"};{"1" if forced_angle else "0"})\n"
+            self.stepper_motors.write(instruction)
+            self.is_moving = True
+
     async def go_to(
         self, x: float, y: float, theta: float, backwards: bool, forced_angle: bool, pathfinding: bool
     ) -> None:
@@ -123,32 +144,44 @@ class Robot:
             d_star = DStarLight(State(current_x, current_y), State(goal_x, goal_y), playing_area.cost)
             d_star.compute_shortest_path(False)
             path = d_star.get_path()
-            logging_info(f"Pathfinding found in {time.time() - start} seconds")
-            logging_debug(str(path))
-            instruction = ""
             path_as_tuples = list(map(lambda x: (x.to_float()[0], x.to_float()[1]), path))
-            smoothed_path = smooth_path(path_as_tuples) if len(path_as_tuples) > 1 else path_as_tuples
-            for point in smoothed_path:
-                log_replay(
-                    ReplayEvent(
-                        event=EventType.ROBOT_PATHING,
-                        place=(point[0]*D_STAR_FACTOR, point[1] * D_STAR_FACTOR, 0)
-                    )
-                )
-                if instruction != "":
-                    instruction += ","
-                instruction += f"({round(point[0]*D_STAR_FACTOR, 2)};{round(point[1]*D_STAR_FACTOR, 2)};{0};{"1" if backwards else "0"};0)"
-
-            instruction += f",({x};{y};{theta};{"1" if backwards else "0"};{"1" if forced_angle else "0"})\n"
+            logging_info(f"Pathfinding found in {time.time() - start} seconds")
+            self.send_d_star_path(path_as_tuples, x, y, theta, backwards, forced_angle)
+            while self.is_moving:
+                if len(playing_area.obstacles_change) > 0:
+                    need_recompute = False
+                    obstacle_set: set[State] = set()
+                    for obstacle in playing_area.obstacles_change:
+                        for line in pairwise(path_as_tuples):
+                            if obstacle.zone_with_robot_size().intersect_with_line(line[0], line[1]):
+                                need_recompute = True
+                                obstacle_points = obstacle.zone_with_robot_size().points_in_zone()
+                                obstacle_coordinates = np.indices((int(PLAYING_AREA_WIDTH / D_STAR_FACTOR),int(PLAYING_AREA_DEPTH / D_STAR_FACTOR))).transpose((1,2,0))
+                                obstacle_state = State(obstacle_coordinates[obstacle_points][0], obstacle_coordinates[obstacle_points][1])
+                                obstacle_set.add(obstacle_state)
+                    if need_recompute:
+                        logging_info("Obstacle found, need to recompute path")
+                        self.stop_moving()
+                        self.is_moving = True
+                        current_x = int(self.current_location.x / D_STAR_FACTOR)
+                        current_y = int(self.current_location.y / D_STAR_FACTOR)
+                        d_star.s_start = State(current_x, current_y)
+                        d_star.add_obstacles(list(obstacle_set))
+                        path = d_star.get_path()
+                        path_as_tuples = list(map(lambda x: (x.to_float()[0], x.to_float()[1]), path))
+                        self.send_d_star_path(path_as_tuples, x, y, theta, backwards, forced_angle)
+                else:
+                    await asyncio.sleep(0.2)
+            return
         else:
             logging_info("No pathfinding used")
             instruction = f"({x};{y};{theta};{"1" if backwards else "0"};{"1" if forced_angle else "0"})\n"
 
-        self.stepper_motors.write(instruction)
-        self.is_moving = True
-        while self.is_moving:
-            await asyncio.sleep(0.2)
-        return
+            self.stepper_motors.write(instruction)
+            self.is_moving = True
+            while self.is_moving:
+                await asyncio.sleep(0.2)
+            return
 
 
 robot = Robot() # Singleton

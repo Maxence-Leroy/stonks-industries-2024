@@ -27,3 +27,7 @@ class Planter():
     coordinates: Coordinates
     side: Side
     blocked_by:Optional[PotArea]
+
+@dataclass
+class OtherRobot():
+    zone: Circle

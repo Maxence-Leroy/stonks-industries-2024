@@ -11,6 +11,7 @@ from pygame_widgets.button import Button
 import sys
 
 from src.constants import PLAYING_AREA_DEPTH, PLAYING_AREA_WIDTH
+from src.helpers.pairwise import pairwise
 from src.replay.base_classes import ReplayEvent, EventType
 from src.replay.load_replay import load_replay
 
@@ -18,12 +19,6 @@ is_playing = False
 DIVIDER = 4
 time: float = 0
 start_playing_real_time: float = 0
-
-def pairwise(t: list[tuple[float, float, float]]) -> list[tuple[tuple[float, float, float], tuple[float, float, float]]]:
-    pair_list: list[tuple[tuple[float, float, float], tuple[float, float, float]]] = []
-    for i in range (0, len(t) - 1):
-        pair_list.append((t[i], t[i+1]))
-    return pair_list
 
 @dataclass
 class State:

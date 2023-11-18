@@ -4,10 +4,10 @@ import math
 from nptyping import NDArray, Float, Shape
 
 from src.constants import ROBOT_DEPTH, Side, PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH, D_STAR_FACTOR
-from src.game_elements import PlantArea, Planter, PotArea, StartArea
+from src.game_elements import PlantArea, Planter, PotArea, StartArea, OtherRobot
 from src.location.location import Coordinates
 from src.logging import logging_warning
-from src.zone import Circle, Rectangle
+from src.zone import Circle, Rectangle, Zone
 
 BIG_NUMBER = 10**10
 
@@ -20,12 +20,15 @@ class PlayingArea:
     plant_areas: list[PlantArea]
     pot_areas: list[PotArea]
     planters: list[Planter]
+    other_robot: OtherRobot
+    obstacles_change: list[Zone]
     cost: NDArray[Shape["60,40"], Float]
     side: Side
 
 
     def __init__(self) -> None:
         self.cost = np.full((int(PLAYING_AREA_WIDTH / D_STAR_FACTOR), int(PLAYING_AREA_DEPTH /D_STAR_FACTOR)), 1.0)
+        self.obstacles_change = []
         self.start_areas = [
             StartArea(is_reserved=False, zone=Rectangle(0, 0, 450, 450), side=Side.BLUE),
             StartArea(is_reserved=False, zone=Rectangle(0, 775, 450, 1225), side=Side.YELLOW),
@@ -61,8 +64,10 @@ class PlayingArea:
             Planter(has_pots=False, coordinates=Coordinates(3000, 1387.5, 0), side=Side.YELLOW, blocked_by=self.pot_areas[5]),
             Planter(has_pots=False, coordinates=Coordinates(3000, 612.5, 0), side=Side.BLUE, blocked_by=self.pot_areas[4]),
         ]
+        self.other_robot = OtherRobot(Circle(PLAYING_AREA_WIDTH * 2, PLAYING_AREA_DEPTH * 2, 1200 / 8))
 
     def compute_costs(self):
+        self.cost = np.full((int(PLAYING_AREA_WIDTH / D_STAR_FACTOR), int(PLAYING_AREA_DEPTH /D_STAR_FACTOR)), 1.0)
         for start_area in self.start_areas:
             if start_area.is_reserved and start_area.side != self.side:
                 self.cost[start_area.zone.zone_with_robot_size().points_in_zone()] = BIG_NUMBER
@@ -72,6 +77,15 @@ class PlayingArea:
         for pot_area in self.pot_areas:
             if pot_area.has_pots:
                 self.cost[pot_area.zone.zone_with_robot_size().points_in_zone()] = BIG_NUMBER
+        self.cost[self.other_robot.zone.zone_with_robot_size().points_in_zone()] = BIG_NUMBER
+
+    def set_other_robot_position(self, x: float, y: float):
+        if x != self.other_robot.zone.x_center or y != self.other_robot.zone.y_center:
+            self.obstacles_change.append(self.other_robot.zone.zone_with_robot_size())
+            self.other_robot.zone.x_center = x
+            self.other_robot.zone.y_center = y
+            self.obstacles_change.append(self.other_robot.zone.zone_with_robot_size())
+            self.compute_costs()
 
     def get_closest_pot(self, current_x: float, current_y: float, current_theta: float) -> Optional[tuple[float, float, float]]:
         min_distance = np.inf
