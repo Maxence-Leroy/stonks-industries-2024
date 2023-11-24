@@ -38,9 +38,17 @@ class AX12:
         full_command += checksum.to_bytes(1, 'little')
 
         self.last_command = full_command
+        print(full_command)
         self.serial.write(full_command)
         self.serial.flush()
+    
+    def read_answer(self) -> bytes:
+        time.sleep(1)
+        res = self.serial.read_all()
+        return res or b''
 
 if __name__ == "__main__":
     ax = AX12()
     ax.move(1, 500)
+    answer = ax.read_answer()
+    print(answer)
