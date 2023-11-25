@@ -3,8 +3,8 @@
 #include "../movingComponents/stepperMotors.h"
 #include "../movingComponents/enslavement.h"
 #include "../movingComponents/pathQueue.h"
-#include "../helpers/path/line.h"
-#include "../helpers/path/rotation.h"
+#include "../helpers/path/heavyside_position.h"
+#include "../helpers/path/heavyside_rotation.h"
 
 void extractCoordinates(String command, String coordinates[5]) {
     int coordinatesCount = 0;
@@ -93,7 +93,7 @@ void handlePIDCommand(String command)
 {
     command = command.substring(4);
     float number = command.substring(6).toFloat();
-    String variable = command.substring(0,4);
+    String variable = command.substring(0,5);
     if(variable.equals("P_POS")) 
     {
         setPPos(number);
@@ -122,6 +122,7 @@ void handlePIDCommand(String command)
     {
         if(LOGGING)
         {
+            Serial.println(variable);
             Serial.println("Can not parse PID command");
         }
     }
@@ -134,11 +135,11 @@ void handleHeavysideCommand(String command)
     Path* path;
     if(command.equals("ROT"))
     {
-        path = new Rotation(0, 0, 0, M_PI_4 / 2, 2, 2);
+        path = new HeavysideRotation(0, 0, 0, M_PI_4 / 2, 2, 2);
     }
     else if(command.equals("POS"))
     {
-        path = new Line(0, 0, 100, 0, 750, 500);
+        path = new HeavysidePosition(0, 0, 100, 0, 750, 500);
     }
     else
     {

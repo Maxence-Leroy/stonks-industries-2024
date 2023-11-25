@@ -126,13 +126,13 @@ void enslave(long time) {
     }
 
     // Then we enslave
-    int orderR = rotationError[P] * P_ROTATION_ERROR_COEFFICIENT
-                + rotationError[I] * I_ROTATION_ERROR_COEFFICIENT
-                + rotationError[D] * D_ROTATION_ERROR_COEFFICIENT;
+    int orderR = rotationError[P] * pRot
+                + rotationError[I] * iRot
+                + rotationError[D] * dRot;
 
-    int orderP = positionError[P] * P_POSITION_ERROR_COEFFICIENT
-                + positionError[I] * I_POSITION_ERROR_COEFFICIENT
-                + positionError[D] * D_POSITION_ERROR_COEFFICIENT;
+    int orderP = positionError[P] * pPos
+                + positionError[I] * iPos
+                + positionError[D] * dPos;
  
     if(!currentPath->isGoingBackwards())
     {
