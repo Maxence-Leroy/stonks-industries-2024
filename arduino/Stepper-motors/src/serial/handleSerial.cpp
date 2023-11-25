@@ -132,11 +132,11 @@ void handleHeavysideCommand(String command)
     command = command.substring(3);
     setInitialPosition(0, 0, 0);
     Path* path;
-    if(command.equals("E_ROT"))
+    if(command.equals("ROT"))
     {
         path = new Rotation(0, 0, 0, M_PI_4 / 2, 2, 2);
     }
-    else if(command.equals("E_POS"))
+    else if(command.equals("POS"))
     {
         path = new Line(0, 0, 100, 0, 750, 500);
     }

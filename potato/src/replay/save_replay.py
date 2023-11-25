@@ -15,10 +15,10 @@ def start_replay():
     global start_match
     start_match = time.time()
 
-def open_replay_file():
+def open_replay_file(file_name: str = ""):
     global file
     if save_replay:
-        filename = f"replay/{str(int(time.time()))}.log"
+        filename = f"replay/{file_name}{str(int(time.time()))}.log"
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         file = open(filename, "w")
 
