@@ -26,6 +26,10 @@ class AX12:
     def get_voltage_limit(self, id: int) -> bytes:
         self.send_command(id, b'\x02', [b'\x0C', b'\x02'])
         return self.read_ignore_previous_command()
+    
+    def get_current_position(self, id: int) -> bytes:
+        self.send_command(id, b'\x02', [b'\x24', b'\x02'])
+        return self.read_ignore_previous_command()
 
     def get_current_voltage(self, id: int) -> bytes:
         self.send_command(id, b'\x02', [b'\x2a', b'\x01'])
@@ -64,9 +68,13 @@ class AX12:
 
 if __name__ == "__main__":
     ax = AX12()
+    print("Current voltage")
+    print(ax.get_current_voltage(1))
+    print("Voltage limit")
+    print(ax.get_voltage_limit(1))
+    print("Move to 1000")
     ax.move(1, 1000)
+    print(ax.read_ignore_previous_command())
     time.sleep(1)
-    answer = ax.read_ignore_previous_command()
-    print(answer)
-    #a = ax.get_current_voltage(1)
-    #print(a)
+    print("Current position")
+    print(ax.get_current_position(1))
