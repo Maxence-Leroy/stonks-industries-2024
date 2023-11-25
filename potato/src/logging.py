@@ -1,7 +1,7 @@
 import time
 from typing import Callable
 
-debug = True
+debug = False
 info = True
 warning = True
 error = True
