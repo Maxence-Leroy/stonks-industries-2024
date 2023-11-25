@@ -22,6 +22,23 @@ class AX12:
         p = list(map(lambda a: a.to_bytes(1, 'little'), p))
         self.send_command(id, b'\x03', [b'\x1E'] + p)
 
+    def get_voltage_limit(self, id: int) -> bytes:
+        self.send_command(id, b'\x02', [b'\x0C', b'\x02'])
+        return self.read_ignore_previous_command()
+
+    def get_current_voltage(self, id: int) -> bytes:
+        self.send_command(id, b'\x02', [b'\x2A', b'\x01'])
+        return self.read_ignore_previous_command()
+    
+    def read_ignore_previous_command(self) -> bytes:
+        time.sleep(0.00002)
+        res = self.serial.read_all()
+        if not res:
+            return b''
+        res = res[len(self.last_command):]
+        return res
+
+
     def send_command(self, id: int, command: bytes, parameters: list[bytes]) -> None:
         if id < 0 or id > 0XFD:
             raise ValueError()
@@ -41,14 +58,12 @@ class AX12:
         print(full_command)
         self.serial.write(full_command)
         self.serial.flush()
-    
-    def read_answer(self) -> bytes:
-        time.sleep(1)
-        res = self.serial.read_all()
-        return res or b''
 
 if __name__ == "__main__":
     ax = AX12()
-    ax.move(1, 500)
-    answer = ax.read_answer()
+    print("Voltage limit")
+    answer = ax.get_voltage_limit(1)
+    print(answer)
+    print("Current voltage")
+    answer = ax.get_current_voltage(1)
     print(answer)
