@@ -20,6 +20,7 @@ class AX12:
     def move(self, id: int, position: int) -> None:
         p = [position&0xff, position>>8]
         p = list(map(lambda a: a.to_bytes(1, 'little'), p))
+        print(p)
         self.send_command(id, b'\x03', [b'\x1E'] + p)
 
     def get_voltage_limit(self, id: int) -> bytes:
@@ -27,11 +28,11 @@ class AX12:
         return self.read_ignore_previous_command()
 
     def get_current_voltage(self, id: int) -> bytes:
-        self.send_command(id, b'\x02', [b'\x2A', b'\x01'])
+        self.send_command(id, b'\x02', [b'\x2a', b'\x01'])
         return self.read_ignore_previous_command()
     
     def read_ignore_previous_command(self) -> bytes:
-        time.sleep(0.00002)
+        time.sleep(0.1)
         res = self.serial.read_all()
         if not res:
             return b''
@@ -52,7 +53,9 @@ class AX12:
         full_command = b'\xFF\xFF' + id_bytes + length_bytes + command
         for parameter in parameters:
             full_command += parameter
-        full_command += checksum.to_bytes(1, 'little')
+        checksum_bytes = checksum.to_bytes(1, 'little')
+        print(checksum_bytes)
+        full_command += checksum_bytes
 
         self.last_command = full_command
         print(full_command)
@@ -61,9 +64,9 @@ class AX12:
 
 if __name__ == "__main__":
     ax = AX12()
-    print("Voltage limit")
-    answer = ax.get_voltage_limit(1)
+    ax.move(1, 1000)
+    time.sleep(1)
+    answer = ax.read_ignore_previous_command()
     print(answer)
-    print("Current voltage")
-    answer = ax.get_current_voltage(1)
-    print(answer)
+    #a = ax.get_current_voltage(1)
+    #print(a)
