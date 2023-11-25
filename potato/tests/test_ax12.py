@@ -21,18 +21,18 @@ class AX12:
         p = [position&0xff, position>>8]
         p = list(map(lambda a: a.to_bytes(1, 'little'), p))
         print(p)
-        self.send_command(id, b'\x03', [b'\x1E'] + p)
+        self.send_command(id, b'\x03', [b'\x2A'] + p)
 
     def get_voltage_limit(self, id: int) -> bytes:
-        self.send_command(id, b'\x02', [b'\x0C', b'\x02'])
+        self.send_command(id, b'\x02', [b'\x0E', b'\x02'])
         return self.read_ignore_previous_command()
     
     def get_current_position(self, id: int) -> bytes:
-        self.send_command(id, b'\x02', [b'\x24', b'\x02'])
+        self.send_command(id, b'\x02', [b'\x38', b'\x02'])
         return self.read_ignore_previous_command()
 
     def get_current_voltage(self, id: int) -> bytes:
-        self.send_command(id, b'\x02', [b'\x2a', b'\x01'])
+        self.send_command(id, b'\x02', [b'\x3E', b'\x01'])
         return self.read_ignore_previous_command()
     
     def read_ignore_previous_command(self) -> bytes:
