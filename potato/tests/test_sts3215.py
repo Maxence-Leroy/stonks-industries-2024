@@ -1,7 +1,7 @@
 import serial
 import time
 
-class AX12:
+class STS3215:
     def __init__(self):
         self.serial = serial.Serial(
             port="/dev/ttyAML7",
@@ -17,10 +17,14 @@ class AX12:
         )
         self.last_command = ""
 
+    def change_id(self, id: int, new_id: int) -> None:
+        if new_id < 0 or new_id > 0XFD:
+            raise ValueError()
+        self.send_command(id, b'\x03', [new_id.to_bytes(1, 'little')])
+
     def move(self, id: int, position: int) -> None:
         p = [position&0xff, position>>8]
         p = list(map(lambda a: a.to_bytes(1, 'little'), p))
-        print(p)
         self.send_command(id, b'\x03', [b'\x2A'] + p)
 
     def get_voltage_limit(self, id: int) -> bytes:
@@ -58,23 +62,21 @@ class AX12:
         for parameter in parameters:
             full_command += parameter
         checksum_bytes = checksum.to_bytes(1, 'little')
-        print(checksum_bytes)
         full_command += checksum_bytes
 
         self.last_command = full_command
-        print(full_command)
         self.serial.write(full_command)
         self.serial.flush()
 
 if __name__ == "__main__":
-    ax = AX12()
+    sts = STS3215()
     print("Current voltage")
-    print(ax.get_current_voltage(1))
+    print(sts.get_current_voltage(1))
     print("Voltage limit")
-    print(ax.get_voltage_limit(1))
+    print(sts.get_voltage_limit(1))
     print("Move to 1000")
-    ax.move(1, 1000)
-    print(ax.read_ignore_previous_command())
+    sts.move(1, 1000)
+    print(sts.read_ignore_previous_command())
     time.sleep(1)
     print("Current position")
-    print(ax.get_current_position(1))
+    print(sts.get_current_position(1))
