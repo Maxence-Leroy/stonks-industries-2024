@@ -17,6 +17,43 @@ double positionError[3] = {0, 0, 0};
 
 Path* currentPath;
 
+float pRot = P_ROTATION_ERROR_COEFFICIENT;
+float iRot = I_ROTATION_ERROR_COEFFICIENT;
+float dRot = D_ROTATION_ERROR_COEFFICIENT;
+float pPos = P_POSITION_ERROR_COEFFICIENT;
+float iPos = I_POSITION_ERROR_COEFFICIENT;
+float dPos = D_POSITION_ERROR_COEFFICIENT;
+
+void setPRot(float newPRot)
+{
+    pRot = newPRot;
+}
+
+void setIRot(float newIRot)
+{
+    iRot = newIRot;
+}
+
+void setDRot(float newDRot)
+{
+    dRot = newDRot;
+}
+
+void setPPos(float newPPos)
+{
+    pPos = newPPos;
+}
+
+void setIPos(float newIPos)
+{
+    iPos = newIPos;
+}
+
+void setDPos(float newDPos)
+{
+    dPos = newDPos;
+}
+
 void setInitialPosition(double x, double y, Angle theta) {
     currentX = x;
     currentY = y;

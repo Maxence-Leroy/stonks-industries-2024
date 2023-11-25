@@ -6,5 +6,7 @@
 void handleInitialPosition(String command);
 void handleMoveCommand(String command);
 void handleStopCommand();
+void handlePIDCommand(String command);
+void handleHeavysideCommand(String command);
 
 #endif

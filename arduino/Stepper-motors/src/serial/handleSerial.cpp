@@ -3,6 +3,8 @@
 #include "../movingComponents/stepperMotors.h"
 #include "../movingComponents/enslavement.h"
 #include "../movingComponents/pathQueue.h"
+#include "../helpers/path/line.h"
+#include "../helpers/path/rotation.h"
 
 void extractCoordinates(String command, String coordinates[5]) {
     int coordinatesCount = 0;
@@ -85,4 +87,66 @@ void handleStopCommand()
     }
     stopMotors();
     setCurrentPath(nullptr);
+}
+
+void handlePIDCommand(String command)
+{
+    command = command.substring(4);
+    float number = command.substring(6).toFloat();
+    String variable = command.substring(0,4);
+    if(variable.equals("P_POS")) 
+    {
+        setPPos(number);
+    }
+    else if(variable.equals("I_POS"))
+    {
+        setIPos(number);
+    }
+    else if(variable.equals("D_POS"))
+    {
+        setDPos(number);
+    }
+    else if(variable.equals("P_ROT"))
+    {
+        setPRot(number);
+    }
+    else if(variable.equals("I_ROT"))
+    {
+        setIRot(number);
+    }
+    else if(variable.equals("D_ROT"))
+    {
+        setDRot(number);
+    }
+    else
+    {
+        if(LOGGING)
+        {
+            Serial.println("Can not parse PID command");
+        }
+    }
+}
+
+void handleHeavysideCommand(String command)
+{
+    command = command.substring(3);
+    setInitialPosition(0, 0, 0);
+    Path* path;
+    if(command.equals("E_ROT"))
+    {
+        path = new Rotation(0, 0, 0, M_PI_4 / 2, 2, 2);
+    }
+    else if(command.equals("E_POS"))
+    {
+        path = new Line(0, 0, 100, 0, 750, 500);
+    }
+    else
+    {
+        if(LOGGING)
+        {
+            Serial.println("Can not parse HS command");
+        }
+    }
+    path->start();
+    setCurrentPath(path);
 }

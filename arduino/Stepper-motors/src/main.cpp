@@ -13,7 +13,7 @@
 Path* path;
 String command;
 
-bool firstTime = true;
+bool hasSentDone = false;
 
 void setup()
 {
@@ -28,6 +28,7 @@ void setup()
   setupAccelero();
   setupIncrementalEncoders();
   setInitialPosition(0, 0, Angle(0));
+  setCurrentPath(new Rotation(0, 0, 0, 0, 2, 2));
   setLeftMotorSpeed(0);
   setRightMotorSpeed(0);
   if(LOGGING)
@@ -50,6 +51,14 @@ void loop()
     {
       handleInitialPosition(command);
     }
+    else if(command.startsWith("PID"))
+    {
+      handlePIDCommand(command);
+    }
+    else if(command.startsWith("HS"))
+    {
+      handleHeavysideCommand(command);
+    }
     else if(command == "STOP") {
       handleStopCommand();
     }
@@ -64,7 +73,7 @@ void loop()
     enslave(currentTime);
   }
 
-  if(!getCurrentPath() || getCurrentPath()->isOver(currentTime))
+  if(getCurrentPath()->isOver(currentTime))
   {
     Path* nextPath = getNextPath();
     if(nextPath)
@@ -75,19 +84,19 @@ void loop()
         Serial.println(nextPath->debugString());
       }
       nextPath->start();
+      hasSentDone = false;
       setCurrentPath(nextPath);
     } 
     else if(getCurrentPath())
     {
       bool hasOtherPath = extractNextDestination();
-      if(!hasOtherPath) {
-        stopMotors();
-        setCurrentPath(nullptr);
+      if(!hasOtherPath && !hasSentDone) {
         if(LOGGING)
         {
           Serial.println("Done moving");
         }
         Serial2.print("DONE\n");
+        hasSentDone = true;
       } 
     } else {
       extractNextDestination();
