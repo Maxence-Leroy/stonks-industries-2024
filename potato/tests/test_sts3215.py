@@ -26,6 +26,9 @@ class STS3215:
         p = position.to_bytes(2, 'little', signed=True)
         self.send_command(id, b'\x03', [b'\x2A', p[0:1], p[1:2]])
 
+    def set_eeprom_lock(self, id: int, lock: bool) -> None:
+        self.send_command(id, b'\x03', [b'\x37', b'\x00' if lock else b'\x01'])
+
     def get_voltage_limit(self, id: int) -> bytes:
         self.send_command(id, b'\x02', [b'\x0E', b'\x02'])
         return self.read_ignore_previous_command()
@@ -83,6 +86,9 @@ class STS3215:
 
 if __name__ == "__main__":
     sts = STS3215()
-    print(sts.get_minimum_angle(2))
-    print(sts.get_maximum_angle(2))
-    sts.move(2, 1000)
+    sts.set_eeprom_lock(1, False)
+    print(sts.read_ignore_previous_command())
+    sts.change_id(1, 2)
+    print(sts.read_ignore_previous_command())
+    sts.set_eeprom_lock(2, True)
+    print(sts.read_ignore_previous_command())
