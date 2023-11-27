@@ -20,14 +20,14 @@ class STS3215:
     def change_id(self, id: int, new_id: int) -> None:
         if new_id < 0 or new_id > 0XFD:
             raise ValueError()
-        self.send_command(id, b'\x03', [new_id.to_bytes(1, 'little')])
+        self.send_command(id, b'\x03', [b'\x05', new_id.to_bytes(1, 'little')])
 
     def move(self, id: int, position: int) -> None:
         p = position.to_bytes(2, 'little', signed=True)
         self.send_command(id, b'\x03', [b'\x2A', p[0:1], p[1:2]])
 
     def set_eeprom_lock(self, id: int, lock: bool) -> None:
-        self.send_command(id, b'\x03', [b'\x37', b'\x00' if lock else b'\x01'])
+        self.send_command(id, b'\x03', [b'\x37', b'\x01' if lock else b'\x00'])
 
     def get_voltage_limit(self, id: int) -> bytes:
         self.send_command(id, b'\x02', [b'\x0E', b'\x02'])
