@@ -46,6 +46,12 @@ class STS3215:
             return b''
         res = res[len(self.last_command):]
         return res
+    
+    def set_id(self, old_id: int, new_id: int) -> None:
+        if new_id < 0 or new_id > 0XFD:
+            raise ValueError()
+        new_id_bytes = new_id.to_bytes(1, 'little')
+        self.send_command(old_id, b'\x03', [b'\x05', new_id_bytes])
 
 
     def send_command(self, id: int, command: bytes, parameters: list[bytes]) -> None:
@@ -70,13 +76,5 @@ class STS3215:
 
 if __name__ == "__main__":
     sts = STS3215()
-    print("Current voltage")
-    print(sts.get_current_voltage(1))
-    print("Voltage limit")
-    print(sts.get_voltage_limit(1))
-    print("Move to 1000")
-    sts.move(1, 1000)
-    print(sts.read_ignore_previous_command())
-    time.sleep(1)
-    print("Current position")
-    print(sts.get_current_position(1))
+    sts.set_id(1, 2)
+    sts.move(2, 1000)
