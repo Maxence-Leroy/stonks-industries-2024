@@ -26,6 +26,15 @@ class STS3215:
         p = position.to_bytes(2, 'little', signed=True)
         self.send_command(id, b'\x03', [b'\x2A', p[0:1], p[1:2]])
 
+    def set_speed(self, id: int, speed: int) -> None:
+        s = speed.to_bytes(2, 'little', signed=True)
+        self.send_command(id, b'\x03', [b'\x2E', s[0:1], s[1:2]])
+
+    def set_mode(self, id: int, mode: int) -> None:
+        if mode < 0 or mode > 3:
+            raise ValueError()
+        self.send_command(id, b'\x03', [b'\x21', mode.to_bytes(1, 'little')])
+
     def set_eeprom_lock(self, id: int, lock: bool) -> None:
         self.send_command(id, b'\x03', [b'\x37', b'\x01' if lock else b'\x00'])
 
@@ -84,11 +93,31 @@ class STS3215:
         self.serial.write(full_command)
         self.serial.flush()
 
+def change_id(sts: STS3215, old_id: int, new_id: int):
+    sts.set_eeprom_lock(old_id, False)
+    print(sts.read_ignore_previous_command())
+    sts.change_id(old_id, new_id)
+    print(sts.read_ignore_previous_command())
+    sts.set_eeprom_lock(new_id, True)
+    print(sts.read_ignore_previous_command())
+    sts.move(new_id, 4000)
+    sts.read_ignore_previous_command()
+    time.sleep(2)
+    sts.move(new_id, 0)
+    sts.read_ignore_previous_command()
+
+def switch_to_continous_mode(sts: STS3215, id: int):
+    sts.set_mode(id, 1)
+    sts.read_ignore_previous_command()
+    sts.set_speed(id, 50)
+    sts.read_ignore_previous_command()
+    time.sleep(5)
+    sts.set_mode(id, 0)
+    sts.read_ignore_previous_command()
+    sts.set_speed(id, 0)
+    sts.read_ignore_previous_command()
+
 if __name__ == "__main__":
     sts = STS3215()
-    sts.set_eeprom_lock(1, False)
-    print(sts.read_ignore_previous_command())
-    sts.change_id(1, 2)
-    print(sts.read_ignore_previous_command())
-    sts.set_eeprom_lock(2, True)
-    print(sts.read_ignore_previous_command())
+    switch_to_continous_mode(sts, 2)
+
