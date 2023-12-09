@@ -30,8 +30,6 @@ void setupMotors() {
 }
 
 void restartMotors(){
-    TCCR1B = _BV(WGM13) | _BV(CS10);
-    TCCR4B = _BV(WGM43) | _BV(CS40);
 }
 
 uint16_t speedToPace(double speed) {
@@ -40,7 +38,7 @@ uint16_t speedToPace(double speed) {
         return ZERO_PACE;
     } else {
         restartMotors();
-        return (uint16_t) ((1/speed + 0.00008823682173)/0.000003139047066);
+        return (uint16_t) (320666 / speed);
     }
 }
 
@@ -54,8 +52,8 @@ void setLeftMotorSpeed(double speed) {
         digitalWrite(LEFT_SIDE_PIN, LOW);
     }
     uint16_t unsignedPace = speedToPace(unsignedSpeed);
-    unsignedPace = unsignedPace < MIN_PACE ? MIN_PACE : unsignedPace;
-    unsignedPace = unsignedPace > MAX_PACE ? MAX_PACE : unsignedPace;
+    unsignedPace = unsignedPace < MIN_PACE && unsignedPace != 0 ? MIN_PACE : unsignedPace;
+    unsignedPace = unsignedPace > MAX_PACE ? ZERO_PACE : unsignedPace;
     OCR4A = unsignedPace;
 }
 
@@ -69,12 +67,10 @@ void setRightMotorSpeed(double speed) {
         digitalWrite(RIGHT_SIDE_PIN, LOW);
     }
     uint16_t unsignedPace = speedToPace(unsignedSpeed);
-    unsignedPace = unsignedPace < MIN_PACE ? MIN_PACE : unsignedPace;
-    unsignedPace = unsignedPace > MAX_PACE ? MAX_PACE : unsignedPace;
+    unsignedPace = unsignedPace < MIN_PACE && unsignedPace != 0 ? MIN_PACE : unsignedPace;
+    unsignedPace = unsignedPace > MAX_PACE ? ZERO_PACE : unsignedPace;
     OCR1A = unsignedPace;
 }
 
 void stopMotors() {
-    TCCR1B = _BV(WGM13);
-    TCCR4B = _BV(WGM43);
 }

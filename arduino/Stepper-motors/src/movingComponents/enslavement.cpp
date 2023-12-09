@@ -107,23 +107,21 @@ void enslave(long time) {
     // Compute PID
     positionError[D] = (currentPositionError-positionError[P])/elapsedTimeInS;
     positionError[P] = currentPositionError;
-    positionError[I] += positionError[P]*elapsedTimeInS;
+    if (positionError[P] > 1)
+    {
+        positionError[I] += positionError[P]*elapsedTimeInS;
+    }
     if(fabs(positionError[I])>KI_POS_SAT)
         positionError[I]=KI_POS_SAT*fabs(positionError[I])/positionError[I];
 
     rotationError[D] = (currentRotationError-rotationError[P])/elapsedTimeInS;
     rotationError[P] = currentRotationError;
-    rotationError[I] += rotationError[P]*elapsedTimeInS;
+    if (rotationError[P] > 1)
+    {
+        rotationError[I] += rotationError[P]*elapsedTimeInS;
+    }
     if(fabs(rotationError[I])>KI_ROT_SAT)
         rotationError[I]=KI_ROT_SAT*fabs(rotationError[I])/rotationError[I];
-
-    if(LOGGING)
-    {
-        Serial.print("Pos error ");
-        Serial.print(currentPositionError);
-        Serial.print(" rot error ");
-        Serial.println(currentRotationError);
-    }
 
     // Then we enslave
     int orderR = rotationError[P] * pRot
@@ -133,6 +131,19 @@ void enslave(long time) {
     int orderP = positionError[P] * pPos
                 + positionError[I] * iPos
                 + positionError[D] * dPos;
+
+    if(LOGGING)
+    {
+        Serial.print("Pos error ");
+        Serial.print(currentPositionError);
+        Serial.print(" rot error ");
+        Serial.print(currentRotationError);
+        Serial.print(" order P ");
+        Serial.print(orderP);
+        Serial.print(" order R ");
+        Serial.println(orderR);
+    }
+
  
     if(!currentPath->isGoingBackwards())
     {
