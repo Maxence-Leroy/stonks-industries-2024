@@ -39,12 +39,18 @@ class STS3215:
 
     def set_speed_mutliples(self, ids: list[int], speed: int) -> None:
         s = self.speed_to_bytes(speed)
+        parameters: list[bytes] = []
+
         for id in ids:
-            self.send_command(id, b'\x04', [b'\x21', b'\x02'])
-            self.read_ignore_previous_command()
-            self.send_command(id, b'\x04', [b'\x2C', s[0:1], s[1:2]])
-            self.read_ignore_previous_command()
-        self.send_command(254, b'\x05', [])
+            parameters += [b'\x21', b'\x01']
+            parameters += [id.to_bytes(1, 'little')]
+            parameters += [b'\x02']
+        for id in ids:
+            parameters += [b'\x2C', b'\x02']
+            parameters += [id.to_bytes(1, 'little')]
+            parameters += [s[0:1], s[1:2]]
+        self.send_command(254, b'\x83', parameters)
+        print(self.read_ignore_previous_command())
 
     def set_mode(self, id: int, mode: int) -> None:
         if mode < 0 or mode > 3:
