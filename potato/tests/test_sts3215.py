@@ -26,15 +26,25 @@ class STS3215:
         p = position.to_bytes(2, 'little', signed=True)
         self.send_command(id, b'\x03', [b'\x2A', p[0:1], p[1:2]])
 
-    def set_speed(self, id: int, speed: int) -> None:
+    def speed_to_bytes(self, speed: int) -> bytes:
         s = abs(speed).to_bytes(2, 'little', signed=True)
-        print(s)
         if speed < 0:
-            print("Negative speed")
             sign = (1<<15).to_bytes(2, 'little')
             s = (int.from_bytes(s, 'little') | int.from_bytes(sign, 'little')).to_bytes(2, 'little')
-            print(s)
+        return s
+
+    def set_speed(self, id: int, speed: int) -> None:
+        s = self.speed_to_bytes(speed)
         self.send_command(id, b'\x03', [b'\x2C', s[0:1], s[1:2]])
+
+    def set_speed_mutliples(self, ids: list[int], speed: int) -> None:
+        s = self.speed_to_bytes(speed)
+        for id in ids:
+            self.send_command(id, b'\x04', [b'\x21', b'\x02'])
+            self.read_ignore_previous_command()
+            self.send_command(id, b'\x04', [b'\x2C', s[0:1], s[1:2]])
+            self.read_ignore_previous_command()
+        self.send_command(254, b'\x05', [])
 
     def set_mode(self, id: int, mode: int) -> None:
         if mode < 0 or mode > 3:
@@ -80,7 +90,7 @@ class STS3215:
 
 
     def send_command(self, id: int, command: bytes, parameters: list[bytes]) -> None:
-        if id < 0 or id > 0XFD:
+        if id < 0 or id > 0XFE:
             raise ValueError()
         id_bytes = id.to_bytes(1, 'little')
         length = len(parameters) + 2
@@ -126,7 +136,16 @@ def switch_to_continous_mode(sts: STS3215, id: int):
     sts.set_speed(id, 0)
     sts.read_ignore_previous_command()
 
+def turn_multiples(sts: STS3215, ids: list[int]):
+    sts.set_speed_mutliples(ids, 1000)
+    time.sleep(5)
+    sts.set_speed_mutliples(ids, -1000)
+    time.sleep(5)
+    sts.set_speed_mutliples(ids, 0)
+    for id in ids:
+        sts.set_mode(id, 0)
+
 if __name__ == "__main__":
     sts = STS3215()
-    switch_to_continous_mode(sts, 2)
+    turn_multiples(sts, [2, 7])
 
