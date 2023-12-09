@@ -27,8 +27,14 @@ class STS3215:
         self.send_command(id, b'\x03', [b'\x2A', p[0:1], p[1:2]])
 
     def set_speed(self, id: int, speed: int) -> None:
-        s = speed.to_bytes(2, 'little', signed=True)
-        self.send_command(id, b'\x03', [b'\x2E', s[0:1], s[1:2]])
+        s = abs(speed).to_bytes(2, 'little', signed=True)
+        print(s)
+        if speed < 0:
+            print("Negative speed")
+            sign = (1<<15).to_bytes(2, 'little')
+            s = (int.from_bytes(s, 'little') | int.from_bytes(sign, 'little')).to_bytes(2, 'little')
+            print(s)
+        self.send_command(id, b'\x03', [b'\x2C', s[0:1], s[1:2]])
 
     def set_mode(self, id: int, mode: int) -> None:
         if mode < 0 or mode > 3:
@@ -107,9 +113,12 @@ def change_id(sts: STS3215, old_id: int, new_id: int):
     sts.read_ignore_previous_command()
 
 def switch_to_continous_mode(sts: STS3215, id: int):
-    sts.set_mode(id, 1)
-    sts.read_ignore_previous_command()
-    sts.set_speed(id, 50)
+    sts.set_mode(id, 2)
+    print(sts.read_ignore_previous_command())
+    sts.set_speed(id, -1000)
+    print(sts.read_ignore_previous_command())
+    time.sleep(5)
+    sts.set_speed(id, 1000)
     sts.read_ignore_previous_command()
     time.sleep(5)
     sts.set_mode(id, 0)
