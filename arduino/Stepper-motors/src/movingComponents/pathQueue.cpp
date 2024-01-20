@@ -64,11 +64,13 @@ bool extractNextDestination()
         {
             requiredTheta += M_PI;
         }
-        if(fabs((requiredTheta - currentTheta).toDouble()))
+        if(fabs((requiredTheta - currentTheta).toDouble()) > 0.1)
         {
             if(LOGGING)
             {
-                Serial.print("New rotation to ");
+                Serial.print("New rotation from ");
+                Serial.print(currentTheta.toDouble());
+                Serial.print(" to ");
                 Serial.println(requiredTheta.toDouble());
             }
             queue->add(new Rotation(currentX, currentY, currentTheta, requiredTheta, maxSpeedRotation, maxAccelerationRotation));

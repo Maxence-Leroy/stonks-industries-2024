@@ -5,6 +5,7 @@
 #include "../movingComponents/pathQueue.h"
 #include "../helpers/path/heavyside_position.h"
 #include "../helpers/path/heavyside_rotation.h"
+#include "../helpers/path/rotation.h"
 
 void extractCoordinates(String command, String coordinates[5]) {
     int coordinatesCount = 0;
@@ -36,7 +37,11 @@ void handleInitialPosition(String command)
     command = command.substring(5); // Starts after "INIT "
     String coordinates[5];
     extractCoordinates(command, coordinates);
-    setInitialPosition(coordinates[0].toDouble(), coordinates[1].toDouble(), Angle(coordinates[2].toDouble()));
+    double x = coordinates[0].toDouble();
+    double y = coordinates[1].toDouble();
+    Angle theta = Angle(coordinates[2].toDouble());
+    setInitialPosition(x, y, theta);
+    setCurrentPath(new Rotation(x, y, theta, theta, 2, 2));
 }
 
 void handleDestination(String destinationString)

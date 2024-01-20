@@ -132,7 +132,7 @@ void enslave(long time) {
                 + positionError[I] * iPos
                 + positionError[D] * dPos;
 
-    if(LOGGING)
+   /* if(LOGGING)
     {
         Serial.print("Pos error ");
         Serial.print(currentPositionError);
@@ -142,7 +142,7 @@ void enslave(long time) {
         Serial.print(orderP);
         Serial.print(" order R ");
         Serial.println(orderR);
-    }
+    }*/
 
  
     if(!currentPath->isGoingBackwards())
