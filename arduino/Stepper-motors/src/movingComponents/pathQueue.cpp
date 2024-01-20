@@ -36,6 +36,7 @@ bool extractNextDestination()
     Angle theta = nextDestination->theta;
     bool backwards = nextDestination->backwards;
     bool forcedAngle = nextDestination->forcedAngle;
+    bool onTheSpot = nextDestination->onTheSpot;
     
     if(LOGGING)
     {
@@ -49,6 +50,8 @@ bool extractNextDestination()
         Serial.print(backwards);
         Serial.print(";");
         Serial.print(forcedAngle);
+        Serial.print(";");
+        Serial.print(onTheSpot);
         Serial.println(")");
     }
     double currentX = getCurrentX();
@@ -68,7 +71,7 @@ bool extractNextDestination()
 
     Angle requiredTheta = currentTheta;
 
-    if(fabs(x - currentX) > 5 || fabs(y - currentY) > 5) 
+    if((fabs(x - currentX) > 5 || fabs(y - currentY) > 5) && !onTheSpot)
     {
         requiredTheta = Angle::computeAngle(currentX, currentY, x, y);
         if(backwards)
@@ -103,7 +106,15 @@ bool extractNextDestination()
         {
             Serial.println("New rotation");
         }
-        queue->add(new Rotation(x, y, requiredTheta, theta, maxSpeedRotation, maxAccelerationRotation));
+        double xRotation, yRotation;
+        if(onTheSpot) {
+            xRotation = currentX;
+            yRotation = currentY;
+        } else {
+            xRotation = x;
+            yRotation = y;
+        }
+        queue->add(new Rotation(xRotation, yRotation, requiredTheta, theta, maxSpeedRotation, maxAccelerationRotation));
     }
     return true;
 }

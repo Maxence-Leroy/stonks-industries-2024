@@ -128,7 +128,7 @@ class Robot:
             self.is_moving = True
 
     async def go_to(
-        self, x: float, y: float, theta: float, backwards: bool, forced_angle: bool, pathfinding: bool
+        self, x: float, y: float, theta: float, backwards: bool, forced_angle: bool, pathfinding: bool, on_the_spot: bool
     ) -> None:
         """Function to move to specific coordinates. Returns when the Arduino has sent "DONE"."""
         log_replay(
@@ -179,7 +179,7 @@ class Robot:
             return
         else:
             logging_info("No pathfinding used")
-            instruction = f"({x};{y};{theta};{"1" if backwards else "0"};{"1" if forced_angle else "0"})\n"
+            instruction = f"({x};{y};{theta};{"1" if backwards else "0"};{"1" if forced_angle else "0"};{"1" if on_the_spot else "0"})\n"
 
             self.stepper_motors.write(instruction)
             self.is_moving = True

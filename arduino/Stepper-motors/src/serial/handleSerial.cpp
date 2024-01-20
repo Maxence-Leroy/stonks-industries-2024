@@ -7,7 +7,7 @@
 #include "../helpers/path/heavyside_rotation.h"
 #include "../helpers/path/rotation.h"
 
-void extractCoordinates(String command, String coordinates[5]) {
+void extractCoordinates(String command, String coordinates[6]) {
     int coordinatesCount = 0;
     command.replace('(', ' ');
     command.replace(')', ' ');
@@ -51,14 +51,16 @@ void handleDestination(String destinationString)
         Serial.print("destination string ");
         Serial.println(destinationString);
     }
-    String coordinates[5];
+    String coordinates[6];
     extractCoordinates(destinationString, coordinates);
     Destination* destination = new Destination(
         coordinates[0].toDouble(),
         coordinates[1].toDouble(),
         Angle(coordinates[2].toDouble()),
         coordinates[3].toInt() == 1,
-        coordinates[4].toInt() == 1);
+        coordinates[4].toInt() == 1,
+        coordinates[5].toInt() == 1
+    );
     addDestination(destination);
 }
 

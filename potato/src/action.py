@@ -309,6 +309,7 @@ class Move(Action):
         destination: Location,
         pathfinding: bool = False,
         forced_angle: bool = False,
+        on_the_spot: bool = False,
         backwards: bool = False,
         timer_limit: float = MATCH_TIME,
         can_be_executed: Callable[[], bool] = lambda: True,
@@ -322,6 +323,9 @@ class Move(Action):
 
         forced_angle: bool
             Is true if the robot must do a rotation to acheive the speciefed angle. Otherwise, focus only on the x & y coordinates
+        
+        on_the_spot: bool
+            If true, the robot will enslave on the current position instead of specified position (to be used for rotations)
 
         backwards: bool
             If the robot must go backwards to go to this destination. Default false.
@@ -342,6 +346,7 @@ class Move(Action):
         self.pathfinding = pathfinding
         self.forced_angle = forced_angle
         self.backwards = backwards
+        self.on_the_spot = on_the_spot
 
     def __str__(self) -> str:
         return f"Move to {str(self.destination)} {super().__str__()}"
@@ -351,7 +356,7 @@ class Move(Action):
         if destination is None:
             raise GameElementNotAvailableException()
         (x, y, theta) = destination
-        await robot.go_to(x, y, theta, self.backwards, self.forced_angle, self.pathfinding)
+        await robot.go_to(x, y, theta, self.backwards, self.forced_angle, self.pathfinding, self.on_the_spot)
 
     execute: Callable[[Self], Awaitable[None]] = go_to_location
 
