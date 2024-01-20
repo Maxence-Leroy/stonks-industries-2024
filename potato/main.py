@@ -1,9 +1,10 @@
 import asyncio
+import math
 import time
 
 from src.action import ActionsSequence, Move
 from src.constants import MATCH_TIME, Side, ROBOT_WIDTH, ROBOT_DEPTH
-from src.location.location import MoveForward, Coordinates
+from src.location.location import MoveForward, Coordinates, RelativeMove
 from src.logging import logging_info, start, logging_error
 from src.playing_area import playing_area
 from src.replay.save_replay import start_replay, open_replay_file
@@ -15,7 +16,16 @@ def main():
         timer_limit=MATCH_TIME,
         actions=[
             Move(
-                MoveForward(100)
+                RelativeMove(1000, 0, 0)
+            ),
+            Move(
+                RelativeMove(0, 1000, 0)
+            ),
+            Move(
+                RelativeMove(-1000, 0, 0)
+            ),
+            Move(
+                RelativeMove(0, -1000, math.pi / 2)
             )
         ],
         allows_fail=False
