@@ -39,18 +39,13 @@ class STS3215:
 
     def set_speed_mutliples(self, ids: list[int], speed: int) -> None:
         s = self.speed_to_bytes(speed)
-        parameters: list[bytes] = []
+        parameters: list[bytes] = [b'\x2C', b'\x02']
 
         for id in ids:
-            parameters += [b'\x21', b'\x01']
-            parameters += [id.to_bytes(1, 'little')]
-            parameters += [b'\x02']
-        for id in ids:
-            parameters += [b'\x2C', b'\x02']
             parameters += [id.to_bytes(1, 'little')]
             parameters += [s[0:1], s[1:2]]
         self.send_command(254, b'\x83', parameters)
-        print(self.read_ignore_previous_command())
+        self.read_ignore_previous_command()
 
     def set_mode(self, id: int, mode: int) -> None:
         if mode < 0 or mode > 3:
@@ -110,6 +105,7 @@ class STS3215:
             full_command += parameter
         checksum_bytes = checksum.to_bytes(1, 'little')
         full_command += checksum_bytes
+        print(full_command)
 
         self.last_command = full_command
         self.serial.write(full_command)
@@ -143,6 +139,8 @@ def switch_to_continous_mode(sts: STS3215, id: int):
     sts.read_ignore_previous_command()
 
 def turn_multiples(sts: STS3215, ids: list[int]):
+    for id in ids:
+         sts.set_mode(id, 2)
     sts.set_speed_mutliples(ids, 1000)
     time.sleep(5)
     sts.set_speed_mutliples(ids, -1000)
@@ -153,5 +151,5 @@ def turn_multiples(sts: STS3215, ids: list[int]):
 
 if __name__ == "__main__":
     sts = STS3215()
-    turn_multiples(sts, [2, 7])
+    turn_multiples(sts, [7, 2, 3, 5, 4, 6])
 
