@@ -11,8 +11,8 @@
 Queue<Path>* queue = new Queue<Path>();
 Queue<Destination>* destinationQueue = new Queue<Destination>();
 
-const double maxSpeed = 750;
-const double maxAcceleration = 500;
+const double maxSpeed = 375;
+const double maxAcceleration = 250;
 const double maxSpeedRotation = 2;
 const double maxAccelerationRotation = 2;
 
@@ -55,9 +55,20 @@ bool extractNextDestination()
     double currentY = getCurrentY();
     Angle currentTheta = getCurrentTheta();
 
+    if(LOGGING)
+    {
+        Serial.print("Current position: (");
+        Serial.print(currentX);
+        Serial.print(";");
+        Serial.print(currentY);
+        Serial.print(";");
+        Serial.print(currentTheta.toDouble());
+        Serial.println(")");
+    }
+
     Angle requiredTheta = currentTheta;
 
-    if(fabs(x - currentX) > 0.5 || fabs(y - currentY) > 0.5) 
+    if(fabs(x - currentX) > 5 || fabs(y - currentY) > 5) 
     {
         requiredTheta = Angle::computeAngle(currentX, currentY, x, y);
         if(backwards)
