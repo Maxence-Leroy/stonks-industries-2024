@@ -16,21 +16,23 @@ def main():
         timer_limit=MATCH_TIME,
         actions=[
             Move(
-                RelativeMove(1000, 0, 0)
+                Coordinates(1000, 1000, 0)
             ),
             Move(
-                RelativeMove(0, 1000, 0)
+                Coordinates(1000, 0, 0)
             ),
             Move(
-                RelativeMove(-1000, 0, 0)
+                Coordinates(2000, 0, 0)
             ),
             Move(
-                RelativeMove(0, -1000, math.pi / 2)
+                Coordinates(2000, 1000, math.pi),
+                forced_angle=True
             )
         ],
         allows_fail=False
     )
-    robot.set_initial_position(Coordinates(ROBOT_DEPTH / 2, ROBOT_WIDTH / 2, 0))
+    #robot.set_initial_position(Coordinates(ROBOT_DEPTH / 2, ROBOT_WIDTH / 2, 0))
+    robot.set_initial_position(Coordinates(2000, 1000, math.pi))
     playing_area.side = Side.YELLOW
     playing_area.compute_costs()
 
