@@ -10,7 +10,7 @@ from src.playing_area import playing_area
 from src.robot_actuator import create_robot_binary_actuator
 from src.robot_stepper_motors import create_stepper_motors
 from src.location.location import Coordinates
-from src.logging import logging_debug, logging_info
+from src.logging import logging_debug, logging_info, logging_error
 from src.path_smoother import smooth_path
 from src.replay.base_classes import ReplayEvent, EventType
 from src.replay.save_replay import log_replay
@@ -73,17 +73,21 @@ class Robot:
             else:
                 res = res[1:-1] # Remove parenthesis
                 coordinates = res.split(";")
-                x = float(coordinates[0])
-                y = float(coordinates[1])
-                theta = float(coordinates[2])
-                logging_debug(f"Current robot position {x},{y},{theta}")
-                log_replay(
-                    ReplayEvent(
-                        event=EventType.ROBOT_POSITION,
-                        place=(x, y, theta)
+                try:
+                    x = float(coordinates[0])
+                    y = float(coordinates[1])
+                    theta = float(coordinates[2])
+                    logging_debug(f"Current robot position {x},{y},{theta}")
+                    log_replay(
+                        ReplayEvent(
+                            event=EventType.ROBOT_POSITION,
+                            place=(x, y, theta)
+                        )
                     )
-                )
-                self.current_location = Coordinates(x, y, theta)
+                    self.current_location = Coordinates(x, y, theta)
+                except Exception as ex:
+                    logging_error(f"Exception while parsing robot: {ex}")
+                    logging_error(f"With input {res}")
 
     def set_initial_position(self, location: Coordinates) -> None:
         self.current_location = location
