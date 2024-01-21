@@ -14,10 +14,39 @@ class Location(ABC):
         raise NotImplementedError()
 
 @dataclass
-class Coordinates(Location):
+class AbsoluteCoordinates(Location):
+    """Location with absolute coordinates which doesn't depend on the side"""
+
+    def __init__(self, x: float, y: float, theta: float) -> None:
+        """
+        Parameters
+        ----------
+        x: float
+            X position in mm
+
+        y: float
+            Y position in mm
+
+        theta: float
+            Angle in radians
+        """
+
+        super().__init__()
+        self.x = x
+        self.y = y
+        self.theta = theta
+
+    def __str__(self) -> str:
+        return f"Absolute (x: {self.x}, y: {self.y}, θ: {self.theta})"
+
+    def getLocation(self, current_x: float, current_y: float, current_theta: float) -> Optional[tuple[float, float, float]]:
+        return (self.x, self.y, self.theta)
+
+@dataclass
+class SideRelatedCoordinates(Location):
     """Location with "absolute" coordinates. They will be converted according to the side of the playing area."""
 
-    def __init__(self, x: float, y: float, theta: float, side: Optional[Side] = None) -> None:
+    def __init__(self, x: float, y: float, theta: float, side: Side) -> None:
         """
         Parameters
         ----------
@@ -30,12 +59,12 @@ class Coordinates(Location):
         theta: float
             Angle of the robot in radians
         
-        absolute: bool
-            True if these are absolute coordinates, False if they need to be converted according to the side
+        side: Side
+            Side of the robot
         """
 
         super().__init__()
-        if side == Side.BLUE or side == None:
+        if side == Side.BLUE:
             self.x = x
             self.y = y
             self.theta = theta
@@ -48,7 +77,7 @@ class Coordinates(Location):
                 self.theta = -math.pi - theta
 
     def __str__(self) -> str:
-        return f"(x: {self.x}, y: {self.y}, θ: {self.theta})"
+        return f"Side related (x: {self.x}, y: {self.y}, θ: {self.theta})"
 
     def getLocation(self, current_x: float, current_y: float, current_theta: float) -> Optional[tuple[float, float, float]]:
         return (self.x, self.y, self.theta)

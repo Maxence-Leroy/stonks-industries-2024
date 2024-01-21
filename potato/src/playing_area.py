@@ -5,7 +5,7 @@ from nptyping import NDArray, Float, Shape
 
 from src.constants import ROBOT_DEPTH, Side, PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH, D_STAR_FACTOR
 from src.game_elements import PlantArea, Planter, PotArea, StartArea, OtherRobot
-from src.location.location import Coordinates
+from src.location.location import AbsoluteCoordinates
 from src.logging import logging_warning
 from src.zone import Circle, Rectangle, Zone
 
@@ -57,12 +57,12 @@ class PlayingArea:
         ]
 
         self.planters = [
-            Planter(has_pots=False, coordinates=Coordinates(0, 612.5, math.pi), side=Side.YELLOW, blocked_by=self.pot_areas[1]),
-            Planter(has_pots=False, coordinates=Coordinates(0, 1387.5, math.pi), side=Side.BLUE, blocked_by=self.pot_areas[2]),
-            Planter(has_pots=False, coordinates=Coordinates(762.5, 2000, math.pi/2), side=Side.BLUE, blocked_by=None),
-            Planter(has_pots=False, coordinates=Coordinates(2237.5, 2000, math.pi/2), side=Side.YELLOW, blocked_by=None),
-            Planter(has_pots=False, coordinates=Coordinates(3000, 1387.5, 0), side=Side.YELLOW, blocked_by=self.pot_areas[5]),
-            Planter(has_pots=False, coordinates=Coordinates(3000, 612.5, 0), side=Side.BLUE, blocked_by=self.pot_areas[4]),
+            Planter(has_pots=False, coordinates=AbsoluteCoordinates(0, 612.5, math.pi), side=Side.YELLOW, blocked_by=self.pot_areas[1]),
+            Planter(has_pots=False, coordinates=AbsoluteCoordinates(0, 1387.5, math.pi), side=Side.BLUE, blocked_by=self.pot_areas[2]),
+            Planter(has_pots=False, coordinates=AbsoluteCoordinates(762.5, 2000, math.pi/2), side=Side.BLUE, blocked_by=None),
+            Planter(has_pots=False, coordinates=AbsoluteCoordinates(2237.5, 2000, math.pi/2), side=Side.YELLOW, blocked_by=None),
+            Planter(has_pots=False, coordinates=AbsoluteCoordinates(3000, 1387.5, 0), side=Side.YELLOW, blocked_by=self.pot_areas[5]),
+            Planter(has_pots=False, coordinates=AbsoluteCoordinates(3000, 612.5, 0), side=Side.BLUE, blocked_by=self.pot_areas[4]),
         ]
         self.other_robot = OtherRobot(Circle(PLAYING_AREA_WIDTH * 2, PLAYING_AREA_DEPTH * 2, 1200 / 8))
 

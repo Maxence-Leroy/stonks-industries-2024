@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from src.constants import Side
-from src.location.location import Coordinates
+from src.location.location import AbsoluteCoordinates
 from src.zone import Circle, Rectangle
 
 @dataclass
@@ -24,7 +24,7 @@ class PotArea():
 @dataclass
 class Planter():
     has_pots: bool
-    coordinates: Coordinates
+    coordinates: AbsoluteCoordinates
     side: Side
     blocked_by:Optional[PotArea]
 

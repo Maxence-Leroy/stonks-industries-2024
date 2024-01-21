@@ -9,7 +9,7 @@ from src.helpers.pairwise import pairwise
 from src.playing_area import playing_area
 from src.robot_actuator import create_robot_binary_actuator
 from src.robot_stepper_motors import create_stepper_motors
-from src.location.location import Coordinates
+from src.location.location import AbsoluteCoordinates, SideRelatedCoordinates
 from src.logging import logging_debug, logging_info, logging_error
 from src.path_smoother import smooth_path
 from src.replay.base_classes import ReplayEvent, EventType
@@ -40,7 +40,7 @@ class Robot:
     """
     start_time: float
     is_moving: bool
-    current_location: Coordinates
+    current_location: AbsoluteCoordinates
 
     def __init__(self) -> None:
         self.stepper_motors = create_stepper_motors()
@@ -84,13 +84,16 @@ class Robot:
                             place=(x, y, theta)
                         )
                     )
-                    self.current_location = Coordinates(x, y, theta)
+                    self.current_location = AbsoluteCoordinates(x, y, theta)
                 except Exception as ex:
                     logging_error(f"Exception while parsing robot: {ex}")
                     logging_error(f"With input {res}")
 
-    def set_initial_position(self, location: Coordinates) -> None:
-        self.current_location = location
+    def set_initial_position(self, location: SideRelatedCoordinates) -> None:
+        absolute_position = location.getLocation(0, 0, 0)
+        if absolute_position != None:
+            (x, y, theta) = absolute_position
+            self.current_location = AbsoluteCoordinates(x, y, theta)
         log_replay(
             ReplayEvent(
                 event=EventType.ROBOT_POSITION,

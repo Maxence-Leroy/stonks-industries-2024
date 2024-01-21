@@ -3,7 +3,7 @@ import time
 
 from src.action import ActionsSequence, Move
 from src.constants import MATCH_TIME, Side, ROBOT_WIDTH, ROBOT_DEPTH
-from src.location.location import Coordinates, MoveForward
+from src.location.location import SideRelatedCoordinates, MoveForward
 from src.logging import logging_info, start, logging_error
 from src.playing_area import playing_area
 from src.replay.save_replay import start_replay, open_replay_file
@@ -19,10 +19,10 @@ def main():
                 MoveForward(100)
             ),
             Move(
-                Coordinates(1500, 1000, 0, side=playing_area.side)
+                SideRelatedCoordinates(1500, 1000, 0, playing_area.side)
             ),
             Move(
-                Coordinates(ROBOT_DEPTH / 2 + 100, ROBOT_WIDTH / 2, 0),
+                SideRelatedCoordinates(ROBOT_DEPTH / 2 + 100, ROBOT_WIDTH / 2, 0, playing_area.side),
                 forced_angle=True
             ),
             Move(
@@ -32,7 +32,7 @@ def main():
         ],
         allows_fail=False
     )
-    robot.set_initial_position(Coordinates(ROBOT_DEPTH / 2, ROBOT_WIDTH / 2, 0, side=playing_area.side))
+    robot.set_initial_position(SideRelatedCoordinates(ROBOT_DEPTH / 2, ROBOT_WIDTH / 2, 0, playing_area.side))
     playing_area.compute_costs()
 
     logging_info(str(strategy))
