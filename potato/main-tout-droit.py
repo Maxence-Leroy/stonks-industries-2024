@@ -16,17 +16,13 @@ def main():
         timer_limit=MATCH_TIME,
         actions=[
             Move(
-                Coordinates(1800, 1000, math.pi/2),
+                Coordinates(0, 1000, 0),
                 forced_angle=True
            ),
             Move(
-                Coordinates(2000, 1000, math.pi/2),
-                forced_angle=True
-           ),
-           Move(
-                Coordinates(2000, 1000, math.pi),
-                forced_angle=True
-           )
+                Coordinates(2000, 1000, 0),
+                backwards=True
+            ),
         ],
         allows_fail=False
     )
