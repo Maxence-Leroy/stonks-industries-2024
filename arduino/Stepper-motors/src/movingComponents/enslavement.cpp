@@ -132,7 +132,7 @@ void enslave(long time) {
                 + positionError[I] * iPos
                 + positionError[D] * dPos;
 
-   /* if(LOGGING)
+    /* if(LOGGING)
     {
         Serial.print("Pos error ");
         Serial.print(currentPositionError);
@@ -176,6 +176,6 @@ const Angle getCurrentTheta()
     return currentTheta;
 }
 
-const Path* getCurrentPath() {
+Path* getCurrentPath() {
     return currentPath;
 }

@@ -121,5 +121,34 @@ double Line::positionError(double x, double y, Angle theta, long time)
 
 double Line::rotationError(double x, double y, Angle theta, long time)
 {
-  return (mTheta-theta).toDouble();
+  // Conversion from perpendicular error to an angle
+  const double ANGLE_ERROR_COEFFICIENT = M_PI_4 / (mMaxSpeed * 40);
+  long ellapsedTime = time - mStartTime;
+
+  double baseRotationError = (mTheta-theta).toDouble();
+
+  // We project on the path line
+  double projectedY = -(x-mStart[X])*mVector[Y]+(y-mStart[Y])*mVector[X];
+  //return baseRotationError;
+
+  if(ellapsedTime < 0)
+  {
+    return baseRotationError;
+  }
+  else if(0 < ellapsedTime && ellapsedTime < mEndAccelerationTime)
+  {
+    return baseRotationError - projectedY * ANGLE_ERROR_COEFFICIENT * ellapsedTime * MICROS_TO_SEC_MULTIPLICATOR * mMaxAcceleration;
+  }
+  else if(mEndAccelerationTime<ellapsedTime && ellapsedTime<mStartDeccelerationTime)
+  {
+    return baseRotationError - projectedY * ANGLE_ERROR_COEFFICIENT * mMaxSpeed;
+  }
+  else if(mStartDeccelerationTime<ellapsedTime && ellapsedTime<mExpectedDuration)
+  {
+    return baseRotationError - projectedY * ANGLE_ERROR_COEFFICIENT* MICROS_TO_SEC_MULTIPLICATOR*(mExpectedDuration-ellapsedTime)*mMaxAcceleration;
+  }
+  else
+  {
+    return baseRotationError;
+  }
 }

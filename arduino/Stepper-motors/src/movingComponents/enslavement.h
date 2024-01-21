@@ -17,6 +17,6 @@ void enslave(long time);
 const double getCurrentX();
 const double getCurrentY();
 const Angle getCurrentTheta();
-const Path* getCurrentPath();
+Path* getCurrentPath();
 
 #endif

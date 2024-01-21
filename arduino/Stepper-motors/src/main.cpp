@@ -73,7 +73,10 @@ void loop()
     enslave(currentTime);
   }
 
-  if(getCurrentPath()->isOver(currentTime))
+  Path* currentPath = getCurrentPath();
+  double positionError = currentPath->positionError(getCurrentX(), getCurrentY(), getCurrentTheta(), currentTime);
+  double rotationError = currentPath->rotationError(getCurrentX(), getCurrentY(), getCurrentTheta(), currentTime);
+  if(currentPath->isOver(currentTime) && positionError < 2 && rotationError < 0.005)
   {
     Path* nextPath = getNextPath();
     if(nextPath)
