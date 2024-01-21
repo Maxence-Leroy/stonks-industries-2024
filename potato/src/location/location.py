@@ -3,6 +3,8 @@ from dataclasses import dataclass
 import math
 from typing import Optional
 
+from src.constants import Side, PLAYING_AREA_WIDTH
+
 
 class Location(ABC):
     """Abstract class for a location. Has a method `getLocation` that will be called when the move location is starting"""
@@ -15,7 +17,7 @@ class Location(ABC):
 class Coordinates(Location):
     """Location with "absolute" coordinates. They will be converted according to the side of the playing area."""
 
-    def __init__(self, x: float, y: float, theta: float) -> None:
+    def __init__(self, x: float, y: float, theta: float, side: Optional[Side] = None) -> None:
         """
         Parameters
         ----------
@@ -27,12 +29,23 @@ class Coordinates(Location):
 
         theta: float
             Angle of the robot in radians
+        
+        absolute: bool
+            True if these are absolute coordinates, False if they need to be converted according to the side
         """
 
         super().__init__()
-        self.x = x
-        self.y = y
-        self.theta = theta
+        if side == Side.BLUE or side == None:
+            self.x = x
+            self.y = y
+            self.theta = theta
+        else:
+            self.x = PLAYING_AREA_WIDTH - x
+            self.y = y
+            if 0 <= theta <= math.pi:
+                self.theta = math.pi - theta
+            else:
+                self.theta = -math.pi - theta
 
     def __str__(self) -> str:
         return f"(x: {self.x}, y: {self.y}, θ: {self.theta})"
