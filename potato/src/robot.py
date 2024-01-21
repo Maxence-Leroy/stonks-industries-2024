@@ -14,6 +14,7 @@ from src.logging import logging_debug, logging_info, logging_error
 from src.path_smoother import smooth_path
 from src.replay.base_classes import ReplayEvent, EventType
 from src.replay.save_replay import log_replay
+from src.sts3215 import STS3215
 class Robot:
     """
     Class reprensatation of the robot
@@ -44,6 +45,8 @@ class Robot:
 
     def __init__(self) -> None:
         self.stepper_motors = create_stepper_motors()
+
+        self.sts3215 = STS3215()
 
         self.is_moving = False
         self.start_time = 0

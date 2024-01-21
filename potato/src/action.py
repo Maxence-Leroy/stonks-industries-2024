@@ -453,3 +453,96 @@ class Switch(Action):
         return
 
     execute: Callable[[Self], Awaitable[None]] = switch
+
+class MoveServoTarget(Action):
+    """Move servos to the target positions. Positions must be between 0 and 4000."""
+
+    def __init__(
+        self,
+        servo_ids: list[int],
+        positions: list[int],
+        timer_limit: float = MATCH_TIME,
+        can_be_executed: Callable[[], bool] = lambda: True,
+        affect_state: Callable[[], None] = lambda: None,
+    ):
+        """
+        Parameters
+        ----------
+        servo_ids: list[int]
+            List of servo's ids
+
+        positions: list[int]
+            List of positions in the same order of the ids.
+        
+        timer_limit: float
+            Time limit to do the action (time counted since the begining of the match), `MATCH_TIME` by default
+
+        can_be_executed: Callable[[], bool]
+            Function where we usually check the state of the robot and the playing area to know if the action is worth doing now,
+            `True` by default
+
+        affect_state: Callable[[], None]
+            Function executed after the action to indicate the state change of the robot and the playing area, `None` by default
+        """
+        
+        super().__init__(timer_limit, can_be_executed, affect_state)
+        self.ids = servo_ids
+        self.positions = positions
+
+    def __str__(self) -> str:
+        description = "Move "
+        for i in range(0, len(self.ids)):
+            description += f"servo {self.ids[i]} to {self.positions[i]} "
+        return description + super().__str__()
+
+    async def move(self) -> None:
+        robot.sts3215.move_to_position(self.ids, self.positions)
+
+    execute: Callable[[Self], Awaitable[None]] = move
+
+class MoveServoContinous(Action):
+    """Move servos in continuous mode to specified speed."""
+
+    def __init__(
+        self,
+        servo_ids: list[int],
+        speed: int,
+        timer_limit: float = MATCH_TIME,
+        can_be_executed: Callable[[], bool] = lambda: True,
+        affect_state: Callable[[], None] = lambda: None,
+    ):
+        """
+        Parameters
+        ----------
+        servo_ids: list[int]
+            List of servo's ids
+
+        speed: int
+            Speed between -1000 and 1000
+        
+        timer_limit: float
+            Time limit to do the action (time counted since the begining of the match), `MATCH_TIME` by default
+
+        can_be_executed: Callable[[], bool]
+            Function where we usually check the state of the robot and the playing area to know if the action is worth doing now,
+            `True` by default
+
+        affect_state: Callable[[], None]
+            Function executed after the action to indicate the state change of the robot and the playing area, `None` by default
+        """
+        
+        super().__init__(timer_limit, can_be_executed, affect_state)
+        self.ids = servo_ids
+        self.speed = speed
+
+    def __str__(self) -> str:
+        description = "Move servos "
+        for id in self.ids:
+            description += f"{id} "
+        description += f"to speed {self.speed}"
+        return description + super().__str__()
+
+    async def move(self) -> None:
+        robot.sts3215.move_continuous(self.ids, self.speed)
+
+    execute: Callable[[Self], Awaitable[None]] = move

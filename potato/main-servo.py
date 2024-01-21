@@ -1,10 +1,9 @@
 import asyncio
-import math
 import time
 
-from src.action import ActionsSequence, Move, Wait
+from src.action import ActionsSequence, MoveServoTarget, MoveServoContinous, Wait
 from src.constants import MATCH_TIME, Side, ROBOT_WIDTH, ROBOT_DEPTH
-from src.location.location import MoveForward, Coordinates, RelativeMove
+from src.location.location import SideRelatedCoordinates
 from src.logging import logging_info, start, logging_error
 from src.playing_area import playing_area
 from src.replay.save_replay import start_replay, open_replay_file
@@ -12,23 +11,21 @@ from src.robot import robot
 
 def main():
     open_replay_file()
+    playing_area.side = Side.BLUE
     strategy = ActionsSequence(
         timer_limit=MATCH_TIME,
         actions=[
-            Move(
-                Coordinates(0, 1000, 0),
-                forced_angle=True
-           ),
-            Move(
-                Coordinates(2000, 1000, 0),
-                backwards=True
-            ),
+            MoveServoTarget([2], [0]),
+            Wait(3),
+            MoveServoTarget([2], [4000]),
+            Wait(3),
+            MoveServoContinous([2], -1000),
+            Wait(5),
+            MoveServoContinous([2], 0)
         ],
         allows_fail=False
     )
-    #robot.set_initial_position(Coordinates(ROBOT_DEPTH / 2, ROBOT_WIDTH / 2, 0))
-    robot.set_initial_position(Coordinates(2000, 1000, math.pi))
-    playing_area.side = Side.YELLOW
+    robot.set_initial_position(SideRelatedCoordinates(ROBOT_DEPTH / 2, ROBOT_WIDTH / 2, 0, playing_area.side))
     playing_area.compute_costs()
 
     logging_info(str(strategy))
