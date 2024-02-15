@@ -118,7 +118,7 @@ class Action:
             true_lambda.__code__.co_code == self.can_be_executed.__code__.co_code)
     
     def __str__(self) -> str:
-        return f"(status {self.status.name} timeout {self.timer_limit} conditions {"none" if self._has_no_condition() else "some"})"
+        return f"(status {self.status.name} timeout {self.timer_limit} conditions {'none' if self._has_no_condition() else 'some'})"
 
     def _timeout(self) -> float:
         """Retrieve robot time and timer_limit. If result < 0, the action should be timed out."""
@@ -442,7 +442,7 @@ class Switch(Action):
         self.on = on
 
     def __str__(self) -> str:
-        return f"Switch {self.actuator.name} {"on" if self.on else "off"} {super().__str__()}"
+        return f"Switch {self.actuator.name} {'on' if self.on else 'off'} {super().__str__()}"
 
     async def switch(self) -> None:
         if self.on:
