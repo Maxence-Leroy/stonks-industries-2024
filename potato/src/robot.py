@@ -83,6 +83,8 @@ class Robot:
     def __init__(self) -> None:
         self.stepper_motors = create_stepper_motors()
 
+        self.current_location = AbsoluteCoordinates(0, 0, 0)
+
         self.sts3215 = STS3215()
 
         self.robot_movement = RobotMovement.FINISH_MOVING
@@ -108,19 +110,29 @@ class Robot:
 
     def handle_lidar(self):
         """Handle lidar and stop when needed"""
-        safety_distance = 200
+        safety_distance = 1000
         while self.start_time == 0 or self.get_current_time() <= MATCH_TIME:
             if self.get_current_time() > 0:
+                location = self.current_location.getLocation(0, 0, 0)
+                if location is None:
+                    raise ValueError()
+                (x, y, theta) = location
                 if self.robot_movement == RobotMovement.IS_MOVING_FORWARD or self.robot_movement == RobotMovement.IS_MOVING_BACKWARD:
-                    points = lidar.scan_points(self.robot_movement.to_lidar_direction())
-                    minimum_distance = np.min(points[:,1])
+                    points = lidar.scan_points(self.robot_movement.to_lidar_direction(), x, y, theta)
+                    if len(points) > 0:
+                        minimum_distance = np.min(points[:,1])
+                    else:
+                        minimum_distance = np.inf
                     logging_debug(f"Lidar minimum distance is {minimum_distance}")
                     if minimum_distance < safety_distance:
                         self.stop_moving(self.robot_movement.stop_because_of_lidar())
                         logging_info(f"Stopping due to close object: {minimum_distance}")
                 elif self.robot_movement == RobotMovement.WAITING_LIDAR_FORWARD or self.robot_movement == RobotMovement.WAITING_LIDAR_BACKWARD:
-                    points = lidar.scan_points(self.robot_movement.to_lidar_direction())
-                    minimum_distance = np.min(points[:,1])
+                    points = lidar.scan_points(self.robot_movement.to_lidar_direction(), x, y, theta)
+                    if len(points) > 0:
+                        minimum_distance = np.min(points[:,1])
+                    else:
+                        minimum_distance = np.inf
                     if minimum_distance > safety_distance:
                         self.stop_moving(self.robot_movement.restart_after_lidar())
                         self.stepper_motors.write(self.last_instruction)

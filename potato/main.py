@@ -22,17 +22,17 @@ def main():
                 SideRelatedCoordinates(1500, 1000, 0, playing_area.side)
             ),
             Move(
-                SideRelatedCoordinates(ROBOT_DEPTH / 2 + 100, ROBOT_WIDTH / 2, 0, playing_area.side),
+                SideRelatedCoordinates(ROBOT_DEPTH / 2 + 1000, ROBOT_WIDTH / 2 + 100, 0, playing_area.side),
                 forced_angle=True
             ),
             Move(
-                MoveForward(-100),
+                MoveForward(-900),
                 backwards=True
             )
         ],
         allows_fail=False
     )
-    robot.set_initial_position(SideRelatedCoordinates(ROBOT_DEPTH / 2, ROBOT_WIDTH / 2, 0, playing_area.side))
+    robot.set_initial_position(SideRelatedCoordinates(ROBOT_DEPTH / 2 + 100, ROBOT_WIDTH / 2 + 100, 0, playing_area.side))
     playing_area.compute_costs()
 
     logging_info(str(strategy))
