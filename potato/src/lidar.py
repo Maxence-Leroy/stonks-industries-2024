@@ -1,8 +1,15 @@
+from enum import Enum
 from typing import Optional
+import math
 import numpy as np
 import ydlidar
 
 from src.logging import logging_error
+
+class LidarDirection(Enum):
+    ALL = 0
+    FORWARD = 1
+    BACKWARD = 2
 
 class Lidar:
     scan: Optional[ydlidar.LaserScan]
@@ -33,11 +40,17 @@ class Lidar:
             self.laser.disconnecting()
             self.scan = None
 
-    def scan_points(self):
+    def scan_points(self, direction: LidarDirection):
         if self.scan is not None:
             r = self.laser.doProcessSimple(self.scan)
             if r:
                 numpy_points = np.array([[p.angle, p.range * 1000 if p.range > 0 else np.inf, p.intensity] for p in self.scan.points])
+                if direction == LidarDirection.FORWARD:
+                    forward_angles = (numpy_points[:, 0] <= -math.pi/2) | (numpy_points[:, 0] >= math.pi / 2)
+                    numpy_points = numpy_points[forward_angles, :]
+                elif direction == LidarDirection.BACKWARD:
+                    backward_angles = (-math.pi / 2 <= numpy_points[:, 0]) & (numpy_points[:, 0] <= math.pi / 2)
+                    numpy_points = numpy_points[backward_angles, :]
                 return numpy_points
             else:
                 logging_error("Unable to read lidar")

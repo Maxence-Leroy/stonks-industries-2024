@@ -3,6 +3,7 @@ from enum import Enum
 import numpy as np
 import threading
 import time
+from typing import Self
 
 from src.constants import MATCH_TIME, D_STAR_FACTOR, PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH
 from src.d_star import DStarLight, State
@@ -10,7 +11,7 @@ from src.helpers.pairwise import pairwise
 from src.playing_area import playing_area
 from src.robot_actuator import create_robot_binary_actuator
 from src.robot_stepper_motors import create_stepper_motors
-from src.lidar import lidar
+from src.lidar import lidar, LidarDirection
 from src.location.location import AbsoluteCoordinates, SideRelatedCoordinates
 from src.logging import logging_debug, logging_info, logging_error
 from src.path_smoother import smooth_path
@@ -20,9 +21,35 @@ from src.sts3215 import STS3215
 
 class RobotMovement(Enum):
     FINISH_MOVING = 0
-    IS_MOVING = 1
-    WAITING_LIDAR = 2
-    WAITING_RECOMPUTE = 3
+    IS_MOVING_FORWARD = 1
+    IS_MOVING_BACKWARD = 2
+    WAITING_LIDAR_FORWARD = 3
+    WAITING_LIDAR_BACKWARD = 4
+    WAITING_RECOMPUTE = 4
+
+    def stop_because_of_lidar(self) -> Self:
+        if self == RobotMovement.IS_MOVING_FORWARD:
+            return RobotMovement.WAITING_LIDAR_FORWARD
+        elif self == RobotMovement.IS_MOVING_BACKWARD:
+            return RobotMovement.WAITING_LIDAR_BACKWARD
+        else:
+            raise ValueError()
+
+    def restart_after_lidar(self) -> Self:
+        if self == RobotMovement.WAITING_LIDAR_FORWARD:
+            return RobotMovement.IS_MOVING_FORWARD
+        elif self == RobotMovement.WAITING_LIDAR_BACKWARD:
+            return RobotMovement.IS_MOVING_BACKWARD
+        else:
+            raise ValueError()
+    
+    def to_lidar_direction(self) -> LidarDirection:
+        if self == RobotMovement.WAITING_LIDAR_FORWARD or self == RobotMovement.IS_MOVING_FORWARD:
+            return LidarDirection.FORWARD
+        elif self == RobotMovement.WAITING_LIDAR_BACKWARD or self == RobotMovement.IS_MOVING_BACKWARD:
+            return LidarDirection.BACKWARD
+        else:
+            raise ValueError()
 
 class Robot:
     """
@@ -84,18 +111,18 @@ class Robot:
         safety_distance = 200
         while self.start_time == 0 or self.get_current_time() <= MATCH_TIME:
             if self.get_current_time() > 0:
-                if self.robot_movement == RobotMovement.IS_MOVING:
-                    points = lidar.scan_points()
+                if self.robot_movement == RobotMovement.IS_MOVING_FORWARD or self.robot_movement == RobotMovement.IS_MOVING_BACKWARD:
+                    points = lidar.scan_points(self.robot_movement.to_lidar_direction())
                     minimum_distance = np.min(points[:,1])
                     logging_debug(f"Lidar minimum distance is {minimum_distance}")
                     if minimum_distance < safety_distance:
-                        self.stop_moving(RobotMovement.WAITING_LIDAR)
+                        self.stop_moving(self.robot_movement.stop_because_of_lidar())
                         logging_info(f"Stopping due to close object: {minimum_distance}")
-                elif self.robot_movement == RobotMovement.WAITING_LIDAR:
-                    points = lidar.scan_points()
+                elif self.robot_movement == RobotMovement.WAITING_LIDAR_FORWARD or self.robot_movement == RobotMovement.WAITING_LIDAR_BACKWARD:
+                    points = lidar.scan_points(self.robot_movement.to_lidar_direction())
                     minimum_distance = np.min(points[:,1])
                     if minimum_distance > safety_distance:
-                        self.stop_moving(RobotMovement.IS_MOVING)
+                        self.stop_moving(self.robot_movement.restart_after_lidar())
                         self.stepper_motors.write(self.last_instruction)
                         logging_info(f"Restarting since object is gone: {minimum_distance}")
                 time.sleep(0.1)
@@ -173,7 +200,7 @@ class Robot:
             instruction += f",({x};{y};{theta};{'1' if backwards else '0'};{'1' if forced_angle else '0'})\n"
             self.last_instruction = instruction
             self.stepper_motors.write(instruction)
-            self.robot_movement = RobotMovement.IS_MOVING
+            self.robot_movement = RobotMovement.IS_MOVING_BACKWARD if backwards else RobotMovement.IS_MOVING_FORWARD
 
     async def go_to(
         self, x: float, y: float, theta: float, backwards: bool, forced_angle: bool, pathfinding: bool, on_the_spot: bool
@@ -228,7 +255,7 @@ class Robot:
             logging_info("No pathfinding used")
             instruction = f"({x};{y};{theta};{'1' if backwards else '0'};{'1' if forced_angle else '0'};{'1' if on_the_spot else '0'})\n"
             self.last_instruction = instruction
-            self.robot_movement = RobotMovement.IS_MOVING
+            self.robot_movement = RobotMovement.IS_MOVING_BACKWARD if backwards else RobotMovement.IS_MOVING_FORWARD
             self.stepper_motors.write(instruction)
             while self.robot_movement != RobotMovement.FINISH_MOVING: #type: ignore
                 await asyncio.sleep(0.2)
