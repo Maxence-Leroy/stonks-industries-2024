@@ -16,9 +16,9 @@ def main():
         timer_limit=MATCH_TIME,
         actions=[
             MoveServoTarget([2], [0]),
-            Wait(3),
+            Wait(5),
             MoveServoTarget([2], [4000]),
-            Wait(3),
+            Wait(5),
             MoveServoContinous([2], -1000),
             Wait(5),
             MoveServoContinous([2], 0)

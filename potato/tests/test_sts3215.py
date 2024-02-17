@@ -151,5 +151,9 @@ def turn_multiples(sts: STS3215, ids: list[int]):
 
 if __name__ == "__main__":
     sts = STS3215()
-    turn_multiples(sts, [7, 2, 3, 5, 4, 6])
+    sts.set_mode(1, 2)
+    sts.set_speed_mutliples([1], 1000)
+    time.sleep(20)
+    sts.set_speed_mutliples([1], 0)
+    sts.set_mode(1, 0)
 

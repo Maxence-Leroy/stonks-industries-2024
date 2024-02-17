@@ -115,4 +115,5 @@ class STS3215:
         """
         for id in ids:
             self._set_mode(id, self.DESTINATION_MODE)
+        self._move_multiples(ids, positions)
         
