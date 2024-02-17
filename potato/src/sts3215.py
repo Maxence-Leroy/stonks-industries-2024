@@ -1,3 +1,4 @@
+import asyncio
 import serial
 import time
 
@@ -15,8 +16,7 @@ class STS3215:
             stopbits=serial.STOPBITS_ONE,
             xonxoff=False,
             rtscts=False,
-            dsrdtr=False,
-            write_timeout=1.0,
+            dsrdtr=False
         )
         self.last_command = ""
 
@@ -71,6 +71,12 @@ class STS3215:
             raise ValueError()
         self._send_command(id, b'\x03', [b'\x21', mode.to_bytes(1, 'little')])
         self._read_ignore_previous_command()
+
+    def _is_moving(self, id: int) -> bool:
+        """Check if the servo is still moving"""
+        self._send_command(id, b'\x02', [b'\x42', b'\x01'])
+        res = self._read_ignore_previous_command()
+        return len(res) == 0 or res[5] > 0
     
     def _read_ignore_previous_command(self) -> bytes:
         time.sleep(0.1)
@@ -95,11 +101,9 @@ class STS3215:
             full_command += parameter
         checksum_bytes = checksum.to_bytes(1, 'little')
         full_command += checksum_bytes
-        print(full_command)
 
         self.last_command = full_command
         self.serial.write(full_command)
-        self.serial.flush()
 
     def move_continuous(self, ids: list[int], speed: int):
         """Move multiple servos in continuous mode. Speed can be between -1000 and 1000, 0 is stop."""
@@ -108,7 +112,7 @@ class STS3215:
         
         self._set_speed_mutliples(ids, speed)
 
-    def move_to_position(self, ids: list[int], positions: list[int]):
+    async def move_to_position(self, ids: list[int], positions: list[int], wait_for_finish: bool) -> None:
         """
         Move multiple servos to set position. Ids and position lists must be same size.
         Positions must be between 0 and 4000.
@@ -116,4 +120,16 @@ class STS3215:
         for id in ids:
             self._set_mode(id, self.DESTINATION_MODE)
         self._move_multiples(ids, positions)
-        
+
+        if wait_for_finish:
+            have_all_finished = False
+            while not have_all_finished:
+                have_all_finished = True
+                for id in ids:
+                    if self._is_moving(id):
+                        have_all_finished = False
+                        break
+                await asyncio.sleep(0.1)
+
+        await asyncio.sleep(0.1)
+        return

@@ -15,10 +15,9 @@ def main():
     strategy = ActionsSequence(
         timer_limit=MATCH_TIME,
         actions=[
-            MoveServoTarget([2], [0]),
-            Wait(5),
-            MoveServoTarget([2], [4000]),
-            Wait(5),
+            MoveServoTarget([2], [0], False),
+            Wait(1),
+            MoveServoTarget([2], [4000], True),
             MoveServoContinous([2], -1000),
             Wait(5),
             MoveServoContinous([2], 0)

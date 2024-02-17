@@ -461,6 +461,7 @@ class MoveServoTarget(Action):
         self,
         servo_ids: list[int],
         positions: list[int],
+        wait_for_finish: bool,
         timer_limit: float = MATCH_TIME,
         can_be_executed: Callable[[], bool] = lambda: True,
         affect_state: Callable[[], None] = lambda: None,
@@ -473,6 +474,9 @@ class MoveServoTarget(Action):
 
         positions: list[int]
             List of positions in the same order of the ids.
+        
+        wait_for_finish: bool
+            Should the action wait for the servos to stop moving before finishing
         
         timer_limit: float
             Time limit to do the action (time counted since the begining of the match), `MATCH_TIME` by default
@@ -488,6 +492,7 @@ class MoveServoTarget(Action):
         super().__init__(timer_limit, can_be_executed, affect_state)
         self.ids = servo_ids
         self.positions = positions
+        self.wait_for_finish = wait_for_finish
 
     def __str__(self) -> str:
         description = "Move "
@@ -496,7 +501,7 @@ class MoveServoTarget(Action):
         return description + super().__str__()
 
     async def move(self) -> None:
-        robot.sts3215.move_to_position(self.ids, self.positions)
+        await robot.sts3215.move_to_position(self.ids, self.positions, self.wait_for_finish)
 
     execute: Callable[[Self], Awaitable[None]] = move
 
