@@ -41,16 +41,16 @@ class Lidar:
             self.laser.disconnecting()
             self.scan = None
 
-    def scan_points(self, direction: LidarDirection, robot_x: float, robot_y: float, robot_theta: float):
+    def scan_points(self, direction: LidarDirection, cone_angle: float, robot_x: float, robot_y: float, robot_theta: float):
         if self.scan is not None:
             r = self.laser.doProcessSimple(self.scan)
             if r:
                 numpy_points = np.array([[math.pi - p.angle if p.angle >= 0 else -math.pi - p.angle, p.range * 1000 if p.range > 0 else np.inf, p.intensity] for p in self.scan.points])
                 if direction == LidarDirection.FORWARD:
-                    forward_angles = (-math.pi / 2 <= numpy_points[:, 0]) & (numpy_points[:, 0] <= math.pi / 2)
+                    forward_angles = (-cone_angle <= numpy_points[:, 0]) & (numpy_points[:, 0] <= cone_angle)
                     numpy_points = numpy_points[forward_angles, :]
                 elif direction == LidarDirection.BACKWARD:
-                    backward_angles = (numpy_points[:, 0] <= -math.pi/2) | (numpy_points[:, 0] >= math.pi / 2)
+                    backward_angles = (numpy_points[:, 0] <= -math.pi/2 - cone_angle) | (numpy_points[:, 0] >= math.pi / 2 + cone_angle)
                     numpy_points = numpy_points[backward_angles, :]
 
                 coordinates_of_detection: list[list[float]] = []

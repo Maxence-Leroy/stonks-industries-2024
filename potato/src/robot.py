@@ -1,5 +1,6 @@
 import asyncio
 from enum import Enum
+import math
 import numpy as np
 import threading
 import time
@@ -110,7 +111,8 @@ class Robot:
 
     def handle_lidar(self):
         """Handle lidar and stop when needed"""
-        safety_distance = 1000
+        safety_distance = 200
+        cone_angle = math.pi / 4
         while self.start_time == 0 or self.get_current_time() <= MATCH_TIME:
             if self.get_current_time() > 0:
                 location = self.current_location.getLocation(0, 0, 0)
@@ -118,7 +120,7 @@ class Robot:
                     raise ValueError()
                 (x, y, theta) = location
                 if self.robot_movement == RobotMovement.IS_MOVING_FORWARD or self.robot_movement == RobotMovement.IS_MOVING_BACKWARD:
-                    points = lidar.scan_points(self.robot_movement.to_lidar_direction(), x, y, theta)
+                    points = lidar.scan_points(self.robot_movement.to_lidar_direction(), cone_angle, x, y, theta)
                     if len(points) > 0:
                         minimum_distance = np.min(points[:,1])
                     else:
@@ -128,7 +130,7 @@ class Robot:
                         self.stop_moving(self.robot_movement.stop_because_of_lidar())
                         logging_info(f"Stopping due to close object: {minimum_distance}")
                 elif self.robot_movement == RobotMovement.WAITING_LIDAR_FORWARD or self.robot_movement == RobotMovement.WAITING_LIDAR_BACKWARD:
-                    points = lidar.scan_points(self.robot_movement.to_lidar_direction(), x, y, theta)
+                    points = lidar.scan_points(self.robot_movement.to_lidar_direction(), cone_angle, x, y, theta)
                     if len(points) > 0:
                         minimum_distance = np.min(points[:,1])
                     else:
