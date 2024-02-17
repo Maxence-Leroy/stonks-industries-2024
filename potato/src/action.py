@@ -6,7 +6,7 @@ from collections.abc import Callable, Awaitable
 from src.constants import MATCH_TIME
 from src.location.location import Location
 from src.logging import logging_info, logging_warning
-from src.robot import robot
+from src.robot import robot, RobotMovement
 from src.robot_actuator import RobotBinaryActuator
 
 class ActionFailedException(Exception):
@@ -361,7 +361,7 @@ class Move(Action):
     execute: Callable[[Self], Awaitable[None]] = go_to_location
 
     def handle_timeout_error_while_doing(self) -> None:
-        robot.stop_moving() # If it times out the robot must stops
+        robot.stop_moving(RobotMovement.FINISH_MOVING) # If it times out the robot must stops
 
 
 class Wait(Action):

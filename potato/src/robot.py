@@ -1,4 +1,5 @@
 import asyncio
+from enum import Enum
 import numpy as np
 import threading
 import time
@@ -9,12 +10,20 @@ from src.helpers.pairwise import pairwise
 from src.playing_area import playing_area
 from src.robot_actuator import create_robot_binary_actuator
 from src.robot_stepper_motors import create_stepper_motors
+from src.lidar import lidar
 from src.location.location import AbsoluteCoordinates, SideRelatedCoordinates
 from src.logging import logging_debug, logging_info, logging_error
 from src.path_smoother import smooth_path
 from src.replay.base_classes import ReplayEvent, EventType
 from src.replay.save_replay import log_replay
 from src.sts3215 import STS3215
+
+class RobotMovement(Enum):
+    FINISH_MOVING = 0
+    IS_MOVING = 1
+    WAITING_LIDAR = 2
+    WAITING_RECOMPUTE = 3
+
 class Robot:
     """
     Class reprensatation of the robot
@@ -40,28 +49,56 @@ class Robot:
         All the actuators will be attributes of the class
     """
     start_time: float
-    is_moving: bool
+    robot_movement: RobotMovement
     current_location: AbsoluteCoordinates
+    last_instruction: str
 
     def __init__(self) -> None:
         self.stepper_motors = create_stepper_motors()
 
         self.sts3215 = STS3215()
 
-        self.is_moving = False
+        self.robot_movement = RobotMovement.FINISH_MOVING
         self.start_time = 0
 
         self.led_ethernet = create_robot_binary_actuator(
             chip="gpiochip1", line=15, name="Ethernet LED"
         )
 
+        self.last_instruction = ""
+
         # Always read the serial from stepper motors to update the robot's state
-        thread = threading.Thread(target=self.read_serial)
-        thread.start()
+        thread_read_serial = threading.Thread(target=self.read_serial)
+        thread_read_serial.start()
+
+        # Always have lidar scannong
+        thread_lidar = threading.Thread(target=self.handle_lidar)
+        thread_lidar.start()
 
     def get_current_time(self) -> float:
         """Get current time on the match (normally between 0 and 100)"""
         return time.time() - self.start_time
+
+    def handle_lidar(self):
+        """Handle lidar and stop when needed"""
+        safety_distance = 0.25
+        while self.start_time == 0 or self.get_current_time() <= MATCH_TIME:
+            if self.get_current_time() > 0:
+                if self.robot_movement == RobotMovement.IS_MOVING:
+                    points = lidar.scan_points()
+                    minimum_distance = np.min(points[:,1])
+                    logging_debug(f"Lidar minimum distance is {minimum_distance}")
+                    if minimum_distance < safety_distance:
+                        self.stop_moving(RobotMovement.WAITING_LIDAR)
+                        logging_info(f"Stopping due to close object: {minimum_distance}")
+                elif self.robot_movement == RobotMovement.WAITING_LIDAR:
+                    points = lidar.scan_points()
+                    minimum_distance = np.min(points[:,1])
+                    if minimum_distance > safety_distance:
+                        self.stop_moving(RobotMovement.IS_MOVING)
+                        self.stepper_motors.write(self.last_instruction)
+                        logging_info(f"Restarting since object is gone: {minimum_distance}")
+                time.sleep(0.1)
 
     def read_serial(self):
         """Read the serail from stepper motors. Will stop at the end of the match"""
@@ -72,7 +109,7 @@ class Robot:
                 # Proably timeout
                 pass
             elif res == "DONE":
-                self.is_moving = False
+                self.robot_movement = RobotMovement.FINISH_MOVING
             else:
                 res = res[1:-1] # Remove parenthesis
                 coordinates = res.split(";")
@@ -105,14 +142,18 @@ class Robot:
         )
         self.stepper_motors.write(f"INIT ({location.x};{location.y};{location.theta})\n")
 
-    def stop_moving(self):
+    def stop_moving(self, cause: RobotMovement):
         """Function to be called when a move action timeout
         (will normally be automaticly done at the end of the match)
+
+        Parameters
+        ----------
+        cause: RobotMovement
+           Cause of the stop (timeout, lidar or path calculation)
         """
-        
         instruction = "STOP\n"
         self.stepper_motors.write(instruction)
-        self.is_moving = False
+        self.robot_movement = cause
 
     def send_d_star_path(self, path: list[tuple[float, float]], x: float, y: float, theta: float, backwards: bool, forced_angle: bool):
         logging_debug(str(path))
@@ -130,8 +171,9 @@ class Robot:
             instruction += f"({round(point[0]*D_STAR_FACTOR, 2)};{round(point[1]*D_STAR_FACTOR, 2)};{0};{'1' if backwards else '0'};0)"
 
             instruction += f",({x};{y};{theta};{'1' if backwards else '0'};{'1' if forced_angle else '0'})\n"
+            self.last_instruction = instruction
             self.stepper_motors.write(instruction)
-            self.is_moving = True
+            self.robot_movement = RobotMovement.IS_MOVING
 
     async def go_to(
         self, x: float, y: float, theta: float, backwards: bool, forced_angle: bool, pathfinding: bool, on_the_spot: bool
@@ -157,7 +199,7 @@ class Robot:
             path_as_tuples = list(map(lambda x: (x.to_float()[0], x.to_float()[1]), path))
             logging_info(f"Pathfinding found in {time.time() - start} seconds")
             self.send_d_star_path(path_as_tuples, x, y, theta, backwards, forced_angle)
-            while self.is_moving:
+            while self.robot_movement != RobotMovement.FINISH_MOVING:
                 if len(playing_area.obstacles_change) > 0:
                     need_recompute = False
                     obstacle_set: set[State] = set()
@@ -171,8 +213,7 @@ class Robot:
                                 obstacle_set.add(obstacle_state)
                     if need_recompute:
                         logging_info("Obstacle found, need to recompute path")
-                        self.stop_moving()
-                        self.is_moving = True
+                        self.stop_moving(RobotMovement.WAITING_RECOMPUTE)
                         current_x = int(self.current_location.x / D_STAR_FACTOR)
                         current_y = int(self.current_location.y / D_STAR_FACTOR)
                         d_star.s_start = State(current_x, current_y)
@@ -186,10 +227,10 @@ class Robot:
         else:
             logging_info("No pathfinding used")
             instruction = f"({x};{y};{theta};{'1' if backwards else '0'};{'1' if forced_angle else '0'};{'1' if on_the_spot else '0'})\n"
-
+            self.last_instruction = instruction
+            self.robot_movement = RobotMovement.IS_MOVING
             self.stepper_motors.write(instruction)
-            self.is_moving = True
-            while self.is_moving:
+            while self.robot_movement != RobotMovement.FINISH_MOVING: #type: ignore
                 await asyncio.sleep(0.2)
             return
 
