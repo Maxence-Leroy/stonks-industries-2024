@@ -3,6 +3,7 @@
 #include "helpers/robotConfig.h"
 #include "helpers/path/line.h"
 #include "helpers/path/rotation.h"
+#include "helpers/path/stayOnPoint.h"
 #include "readingComponents/accelero.h"
 #include "readingComponents/incrementalEncoder.h"
 #include "movingComponents/enslavement.h"
@@ -28,7 +29,7 @@ void setup()
   setupAccelero();
   setupIncrementalEncoders();
   setInitialPosition(0, 0, Angle(0));
-  setCurrentPath(new Rotation(0, 0, 0, 0, 2, 2));
+  setCurrentPath(new StayOnPoint(0, 0, 0));
   setLeftMotorSpeed(0);
   setRightMotorSpeed(0);
   if(LOGGING)
@@ -98,7 +99,9 @@ void loop()
         {
           Serial.println("Done moving");
         }
-        Serial2.print("DONE\n");
+        if(currentPath->sendDone()) {
+          Serial2.print("DONE\n");
+        }
         hasSentDone = true;
       } 
     } else {

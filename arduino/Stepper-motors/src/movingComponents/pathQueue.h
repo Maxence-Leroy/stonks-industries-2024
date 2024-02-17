@@ -7,5 +7,6 @@
 void addDestination(Destination* destination);
 bool extractNextDestination();
 Path* getNextPath();
+void clearQueue();
 
 #endif

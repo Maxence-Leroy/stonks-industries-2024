@@ -6,6 +6,7 @@
 #include "../helpers/path/heavyside_position.h"
 #include "../helpers/path/heavyside_rotation.h"
 #include "../helpers/path/rotation.h"
+#include "../helpers/path/stayOnPoint.h"
 
 void extractCoordinates(String command, String coordinates[6]) {
     int coordinatesCount = 0;
@@ -41,7 +42,7 @@ void handleInitialPosition(String command)
     double y = coordinates[1].toDouble();
     Angle theta = Angle(coordinates[2].toDouble());
     setInitialPosition(x, y, theta);
-    setCurrentPath(new Rotation(x, y, theta, theta, 2, 2));
+    setCurrentPath(new StayOnPoint(x, y, theta));
 }
 
 void handleDestination(String destinationString)
@@ -93,7 +94,8 @@ void handleStopCommand()
         Serial.println("Stop command");
     }
     stopMotors();
-    setCurrentPath(nullptr);
+    clearQueue();
+    setCurrentPath(new StayOnPoint(getCurrentX(), getCurrentY(), getCurrentTheta()));
 }
 
 void handlePIDCommand(String command)

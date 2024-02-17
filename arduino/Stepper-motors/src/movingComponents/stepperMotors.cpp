@@ -34,10 +34,8 @@ void restartMotors(){
 
 uint16_t speedToPace(double speed) {
     if(speed == 0) {
-        stopMotors();
         return ZERO_PACE;
     } else {
-        restartMotors();
         return (uint16_t) (320666 / speed);
     }
 }
@@ -73,4 +71,6 @@ void setRightMotorSpeed(double speed) {
 }
 
 void stopMotors() {
+    setLeftMotorSpeed(0);
+    setRightMotorSpeed(0);
 }

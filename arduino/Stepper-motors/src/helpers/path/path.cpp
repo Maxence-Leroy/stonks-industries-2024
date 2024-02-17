@@ -42,3 +42,7 @@ bool Path::isOver(long time) const
     long ellapsedTime = time - mStartTime;
     return (ellapsedTime > mExpectedDuration || mExpectedDuration == 0);
 }
+
+bool Path::sendDone() const {
+    return true;
+}

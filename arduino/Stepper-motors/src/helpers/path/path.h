@@ -22,6 +22,8 @@ class Path
     bool isOver(long time) const;
 
     bool isGoingBackwards() const;
+
+    virtual bool sendDone() const;
 };
 
 

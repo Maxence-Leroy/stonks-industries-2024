@@ -123,3 +123,9 @@ Path* getNextPath()
 {
     return queue->pop();
 }
+
+void clearQueue() {
+    while(!queue->isEmpty()) {
+        queue->pop();
+    }
+}
