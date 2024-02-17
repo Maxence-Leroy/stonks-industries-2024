@@ -37,7 +37,7 @@ class Lidar:
         if self.scan is not None:
             r = self.laser.doProcessSimple(self.scan)
             if r:
-                numpy_points = np.array([[p.angle, p.range if p.range > 0 else np.inf, p.intensity] for p in self.scan.points])
+                numpy_points = np.array([[p.angle, p.range * 1000 if p.range > 0 else np.inf, p.intensity] for p in self.scan.points])
                 return numpy_points
             else:
                 logging_error("Unable to read lidar")

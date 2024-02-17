@@ -81,7 +81,7 @@ class Robot:
 
     def handle_lidar(self):
         """Handle lidar and stop when needed"""
-        safety_distance = 0.25
+        safety_distance = 200
         while self.start_time == 0 or self.get_current_time() <= MATCH_TIME:
             if self.get_current_time() > 0:
                 if self.robot_movement == RobotMovement.IS_MOVING:
