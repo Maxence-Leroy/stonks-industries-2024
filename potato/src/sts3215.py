@@ -41,11 +41,11 @@ class STS3215:
         self._read_ignore_previous_command()
 
     def _speed_to_bytes(self, speed: int) -> bytes:
-        """Convert a speed int (between -1000 and 1000)"""
-        s = abs(speed).to_bytes(2, 'little', signed=True)
+        """Convert a speed int (between -1023 and 1023)"""
         if speed < 0:
-            sign = (1<<15).to_bytes(2, 'little')
-            s = (int.from_bytes(s, 'little') | int.from_bytes(sign, 'little')).to_bytes(2, 'little')
+            s = (-speed + 1024).to_bytes(2, 'little')
+        else:
+            s = speed.to_bytes(2, 'little')
         return s
 
     def _set_speed(self, id: int, speed: int) -> None:

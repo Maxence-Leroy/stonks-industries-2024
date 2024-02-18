@@ -27,10 +27,10 @@ class STS3215:
         self.send_command(id, b'\x03', [b'\x2A', p[0:1], p[1:2]])
 
     def speed_to_bytes(self, speed: int) -> bytes:
-        s = abs(speed).to_bytes(2, 'little', signed=True)
         if speed < 0:
-            sign = (1<<15).to_bytes(2, 'little')
-            s = (int.from_bytes(s, 'little') | int.from_bytes(sign, 'little')).to_bytes(2, 'little')
+            s = (-speed + 1024).to_bytes(2, 'little')
+        else:
+            s = speed.to_bytes(2, 'little')
         return s
 
     def set_speed(self, id: int, speed: int) -> None:
@@ -166,7 +166,6 @@ if __name__ == "__main__":
         res = input()
         try:
             a = int(res)
-            print(a)
             sts.set_speed_mutliples([1], a)
         except Exception:
             pass
