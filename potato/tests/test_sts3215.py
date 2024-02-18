@@ -105,7 +105,6 @@ class STS3215:
             full_command += parameter
         checksum_bytes = checksum.to_bytes(1, 'little')
         full_command += checksum_bytes
-        print(full_command)
 
         self.last_command = full_command
         self.serial.write(full_command)
@@ -149,11 +148,26 @@ def turn_multiples(sts: STS3215, ids: list[int]):
     for id in ids:
         sts.set_mode(id, 0)
 
+def start():
+    sts = STS3215()
+    sts.set_mode(1, 2)
+    sts.set_speed_mutliples([1], -1000)
+
+def stop():
+    sts = STS3215()
+    sts.set_mode(1, 2)
+    sts.set_speed_mutliples([1], 0)
+
 if __name__ == "__main__":
     sts = STS3215()
     sts.set_mode(1, 2)
-    sts.set_speed_mutliples([1], 1000)
-    time.sleep(20)
-    sts.set_speed_mutliples([1], 0)
-    sts.set_mode(1, 0)
+    res = ""
+    while res != "q":
+        res = input()
+        try:
+            a = int(res)
+            print(a)
+            sts.set_speed_mutliples([1], a)
+        except Exception:
+            pass
 
