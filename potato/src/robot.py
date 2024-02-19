@@ -125,7 +125,7 @@ class Robot:
                 (x, y, theta) = location
                 if self.robot_movement == RobotMovement.IS_MOVING_FORWARD or self.robot_movement == RobotMovement.IS_MOVING_BACKWARD:
                     points = lidar.scan_points(self.robot_movement.to_lidar_direction(), cone_angle, x, y, theta)
-                    if len(points) > 0:
+                    if points is not None and len(points) > 0:
                         minimum_distance = np.min(points[:,1])
                     else:
                         minimum_distance = np.inf
