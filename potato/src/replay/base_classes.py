@@ -14,6 +14,17 @@ class EventType(int, Enum):
     OBSTACLE_DISAPPEAR = 7
     SCORE = 8
 
+    def string_name(self) -> str:
+        match self:
+            case EventType.ROBOT_POSITION:
+                return "robot_position"
+            case EventType.ROBOT_PATHING:
+                return "robot_pathing"
+            case EventType.ROBOT_DESTINATION:
+                return "robot_destination"
+            case _:
+                return ""
+
 @dataclass
 class ReplayEvent:
     event: EventType
