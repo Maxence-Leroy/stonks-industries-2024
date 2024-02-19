@@ -95,6 +95,10 @@ class Robot:
             chip="gpiochip1", line=15, name="Ethernet LED"
         )
 
+        self.magnet = create_robot_binary_actuator(
+            chip="gpiochip1", line=83, name="Magnet"
+        )
+
         self.last_instruction = ""
 
         # Always read the serial from stepper motors to update the robot's state
