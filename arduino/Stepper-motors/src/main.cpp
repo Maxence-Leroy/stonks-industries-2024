@@ -77,7 +77,7 @@ void loop()
   Path* currentPath = getCurrentPath();
   double positionError = currentPath->positionError(getCurrentX(), getCurrentY(), getCurrentTheta(), currentTime);
   double rotationError = currentPath->rotationError(getCurrentX(), getCurrentY(), getCurrentTheta(), currentTime);
-  if(currentPath->isOver(currentTime) && positionError < 2 && rotationError < 0.005)
+  if(currentPath->isOver(currentTime) && abs(positionError) < 3 && abs(rotationError) < 0.01)
   {
     Path* nextPath = getNextPath();
     if(nextPath)
