@@ -129,7 +129,7 @@ class ReplayUI:
     def press_play_pause_button(self):
         self.is_playing = not self.is_playing
         if self.is_playing:
-            self.start_playing_real_time = time_library.time()
+            self.start_playing_real_time = time_library.time() - self.time
             self.slider.disable()
             self.slider_value.disable()
         else:
