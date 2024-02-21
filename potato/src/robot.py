@@ -4,7 +4,7 @@ import math
 import numpy as np
 import threading
 import time
-from typing import Self
+from typing import Self, Optional
 
 from src.constants import MATCH_TIME, D_STAR_FACTOR, PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH
 from src.d_star import DStarLight, State
@@ -44,13 +44,19 @@ class RobotMovement(Enum):
         else:
             raise ValueError()
     
-    def to_lidar_direction(self) -> LidarDirection:
+    def to_lidar_direction(self) -> Optional[LidarDirection]:
         if self == RobotMovement.WAITING_LIDAR_FORWARD or self == RobotMovement.IS_MOVING_FORWARD:
             return LidarDirection.FORWARD
         elif self == RobotMovement.WAITING_LIDAR_BACKWARD or self == RobotMovement.IS_MOVING_BACKWARD:
             return LidarDirection.BACKWARD
         else:
-            raise ValueError()
+            return None
+        
+    def is_moving(self) -> bool:
+        return self == RobotMovement.IS_MOVING_BACKWARD or self == RobotMovement.IS_MOVING_FORWARD
+
+    def is_waiting_lidar(self) -> bool:
+        return self == RobotMovement.WAITING_LIDAR_BACKWARD or self == RobotMovement.WAITING_LIDAR_FORWARD  
 
 class Robot:
     """
@@ -116,33 +122,44 @@ class Robot:
     def handle_lidar(self):
         """Handle lidar and stop when needed"""
         safety_distance = 200
-        cone_angle = math.pi / 4
+        cone_angle = math.pi / 3
+
         while self.start_time == 0 or self.get_current_time() <= MATCH_TIME:
             if self.get_current_time() > 0:
+                direction = self.robot_movement.to_lidar_direction()
+                if direction is None:
+                    time.sleep(0.1)
+                    continue
+
                 location = self.current_location.getLocation(0, 0, 0)
                 if location is None:
                     raise ValueError()
                 (x, y, theta) = location
-                if self.robot_movement == RobotMovement.IS_MOVING_FORWARD or self.robot_movement == RobotMovement.IS_MOVING_BACKWARD:
-                    points = lidar.scan_points(self.robot_movement.to_lidar_direction(), cone_angle, x, y, theta)
-                    if points is not None and len(points) > 0:
-                        minimum_distance = np.min(points[:,1])
+                points_with_angle = lidar.scan_points()
+                points_with_coordinates = lidar.get_lidar_coordinates(points_with_angle, x, y, theta)
+                points_with_angle = points_with_angle[lidar.filter_on_field(points_with_coordinates), :]
+                points_with_angle = points_with_angle[lidar.filter_direction(points_with_angle, direction, cone_angle), :]
+
+                if self.robot_movement.is_moving():
+                    if len(points_with_angle) > 0:
+                        minimum_distance = np.min(points_with_angle[:,1])
                     else:
                         minimum_distance = np.inf
                     logging_debug(f"Lidar minimum distance is {minimum_distance}")
                     if minimum_distance < safety_distance:
                         self.stop_moving(self.robot_movement.stop_because_of_lidar())
                         logging_info(f"Stopping due to close object: {minimum_distance}")
-                elif self.robot_movement == RobotMovement.WAITING_LIDAR_FORWARD or self.robot_movement == RobotMovement.WAITING_LIDAR_BACKWARD:
-                    points = lidar.scan_points(self.robot_movement.to_lidar_direction(), cone_angle, x, y, theta)
-                    if len(points) > 0:
-                        minimum_distance = np.min(points[:,1])
+
+                elif self.robot_movement.is_waiting_lidar():
+                    if len(points_with_angle) > 0:
+                        minimum_distance = np.min(points_with_angle[:,1])
                     else:
                         minimum_distance = np.inf
                     if minimum_distance > safety_distance:
                         self.stop_moving(self.robot_movement.restart_after_lidar())
                         self.stepper_motors.write(self.last_instruction)
                         logging_info(f"Restarting since object is gone: {minimum_distance}")
+
                 time.sleep(0.1)
 
     def read_serial(self):

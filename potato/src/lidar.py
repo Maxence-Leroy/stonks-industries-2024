@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Optional
 import math
+from nptyping import NDArray, Float, Shape, Bool
 import numpy as np
 import ydlidar
 
@@ -41,31 +42,40 @@ class Lidar:
             self.laser.disconnecting()
             self.scan = None
 
-    def scan_points(self, direction: LidarDirection, cone_angle: float, robot_x: float, robot_y: float, robot_theta: float):
+    def get_lidar_coordinates(self, points_with_angle: NDArray[Shape["360, 3"], Float], robot_x: float, robot_y: float, robot_theta: float) -> NDArray[Shape["360, 3"], Float]:
+        coordinates_of_detection: list[list[float]] = []
+        for point in points_with_angle:
+            coordinates_of_detection.append(
+                [robot_x + point[1] * math.cos(robot_theta + point[0]), 
+                 robot_y + point[1] * math.sin(robot_theta + point[0]),
+                 point[2]]
+            )
+
+        return np.array(coordinates_of_detection)
+
+
+    def filter_on_field(self, coordinates_of_detection: NDArray[Shape["360, 3"], Float]) -> NDArray[Shape["200, 1"], Bool]:
+        return (coordinates_of_detection[:, 0] >= 0) & (coordinates_of_detection[:, 0] <= PLAYING_AREA_WIDTH) &  (coordinates_of_detection[:, 1] >= 0) & (coordinates_of_detection[:, 1] <= PLAYING_AREA_DEPTH)
+    
+    def filter_direction(self, points_with_angle: NDArray[Shape["360, 3"], Float], direction: LidarDirection, cone_angle: float) -> NDArray[Shape["200, 1"], Bool]:
+        if direction == LidarDirection.FORWARD:
+            return (-cone_angle <= points_with_angle[:, 0]) & (points_with_angle[:, 0] <= cone_angle)
+        elif direction == LidarDirection.BACKWARD:
+            return (points_with_angle[:, 0] <= -math.pi/2 - cone_angle) | (points_with_angle[:, 0] >= math.pi / 2 + cone_angle)
+        else:
+            raise ValueError()
+
+
+    def scan_points(self) -> NDArray[Shape["360, 3"], Float]:
         if self.scan is not None:
             r = self.laser.doProcessSimple(self.scan)
             if r:
                 numpy_points = np.array([[math.pi - p.angle if p.angle >= 0 else -math.pi - p.angle, p.range * 1000 if p.range > 0 else np.inf, p.intensity] for p in self.scan.points])
-                if direction == LidarDirection.FORWARD:
-                    forward_angles = (-cone_angle <= numpy_points[:, 0]) & (numpy_points[:, 0] <= cone_angle)
-                    numpy_points = numpy_points[forward_angles, :]
-                elif direction == LidarDirection.BACKWARD:
-                    backward_angles = (numpy_points[:, 0] <= -math.pi/2 - cone_angle) | (numpy_points[:, 0] >= math.pi / 2 + cone_angle)
-                    numpy_points = numpy_points[backward_angles, :]
-
-                coordinates_of_detection: list[list[float]] = []
-                for point in numpy_points:
-                    coordinates_of_detection.append(
-                        [robot_x + point[1] * math.cos(robot_theta + point[0]), 
-                         robot_y + point[1] * math.sin(robot_theta + point[0])]
-                    )
-
-                np_coordinates_of_detection = np.array(coordinates_of_detection)
-                points_in_field = (np_coordinates_of_detection[:, 0] >= 0) & (np_coordinates_of_detection[:, 0] <= PLAYING_AREA_WIDTH) &  (np_coordinates_of_detection[:, 1] >= 0) & (np_coordinates_of_detection[:, 1] <= PLAYING_AREA_DEPTH)
-
-                return numpy_points[points_in_field, :]
+                return numpy_points
             else:
                 logging_error("Unable to read lidar")
                 return np.array([])
+        else:
+            return np.array([])
 
 lidar = Lidar() # Singleton
