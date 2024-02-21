@@ -124,6 +124,7 @@ class Robot:
         safety_distance = 200
         cone_angle = math.pi / 3
 
+        last_replay_log = 0
         while self.start_time == 0 or self.get_current_time() <= MATCH_TIME:
             current_time = self.get_current_time()
             if current_time > 0:
@@ -142,8 +143,10 @@ class Robot:
                 points_with_angle = points_with_angle[field_filter, :]
                 points_with_angle = points_with_angle[lidar.filter_direction(points_with_angle, direction, cone_angle), :]
 
-                for point in points_with_coordinates[field_filter, :]:
-                    log_replay(ReplayEvent(EventType.LIDAR, (point[0], point[1], 0), point[2], current_time))
+                if current_time - last_replay_log >= 1:
+                    last_replay_log = current_time
+                    for point in points_with_coordinates[field_filter, :]:
+                        log_replay(ReplayEvent(EventType.LIDAR, (point[0], point[1], 0), point[2], current_time))
 
                 if self.robot_movement.is_moving():
                     if len(points_with_angle) > 0:

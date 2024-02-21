@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import math
 import os
 import time as time_library
@@ -9,7 +9,7 @@ from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox
 from pygame_widgets.button import Button
 
-from src.constants import PLAYING_AREA_DEPTH, PLAYING_AREA_WIDTH
+from src.constants import PLAYING_AREA_DEPTH, PLAYING_AREA_WIDTH, MATCH_TIME
 from src.helpers.pairwise import pairwise
 from src.replay.base_classes import ReplayEvent, EventType
 
@@ -21,10 +21,10 @@ WINDOW_SIZE = [PLAYING_AREA_WIDTH / MM_TO_PIXEL_DIVIDER + 2 * MARGIN + SLIDER_WI
 
 @dataclass
 class ReplayState:
-    robot_path: list[tuple[float, float, float]] = []
+    robot_path: list[tuple[float, float, float]] = field(default_factory=list)
     robot_position: Optional[tuple[float, float, float]] = None
     robot_goal: Optional[tuple[float, float, float]] = None
-    obstacles: list[tuple[float, float, float]] = []
+    obstacles: list[tuple[float, float, float]] = field(default_factory=list)
 
 def compute_state(events: list[ReplayEvent], time: float) -> ReplayState:
     events.sort(key=lambda event: event.time)
@@ -43,9 +43,12 @@ def compute_state(events: list[ReplayEvent], time: float) -> ReplayState:
             state.robot_path.append(event.place)
 
     state.obstacles = []
-    obstacle_events = filter(lambda event: event.event == EventType.LIDAR and event.time <= time, events)
-    max_time_obstacle_events = max(event.time for event in obstacle_events)
-    current_obstacles = filter(lambda event: event.time == max_time_obstacle_events, obstacle_events)
+    obstacle_events = list(filter(lambda event: event.event == EventType.LIDAR and event.time <= time, events))
+    if len(obstacle_events) > 0:
+        max_time_obstacle_events = max(event.time for event in obstacle_events)
+    else:
+        max_time_obstacle_events = MATCH_TIME
+    current_obstacles = list(filter(lambda event: max_time_obstacle_events - 1 <= event.time <= max_time_obstacle_events, obstacle_events))
     for event in current_obstacles:
         if event.place is None or event.number is None:
             raise ValueError()
@@ -133,7 +136,7 @@ class ReplayUI:
                     )
 
             for obstacle in self.state.obstacles:
-                pygame.draw.circle(self.screen, (125, 125, 125), (obstacle[0] / MM_TO_PIXEL_DIVIDER, obstacle[1] / MM_TO_PIXEL_DIVIDER, obstacle[2]), 10)
+                pygame.draw.circle(self.screen, (125, 125, 125), (obstacle[0] / MM_TO_PIXEL_DIVIDER, (PLAYING_AREA_DEPTH - obstacle[1]) / MM_TO_PIXEL_DIVIDER), obstacle[2] / 10)
             
             pygame_widgets.update(events)
             pygame.display.update()
