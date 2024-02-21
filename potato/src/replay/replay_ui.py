@@ -21,13 +21,14 @@ WINDOW_SIZE = [PLAYING_AREA_WIDTH / MM_TO_PIXEL_DIVIDER + 2 * MARGIN + SLIDER_WI
 
 @dataclass
 class ReplayState:
-    robot_path: list[tuple[float, float, float]]
+    robot_path: list[tuple[float, float, float]] = []
     robot_position: Optional[tuple[float, float, float]] = None
     robot_goal: Optional[tuple[float, float, float]] = None
+    obstacles: list[tuple[float, float, float]] = []
 
 def compute_state(events: list[ReplayEvent], time: float) -> ReplayState:
     events.sort(key=lambda event: event.time)
-    state = ReplayState([])
+    state = ReplayState()
     for event in events:
         if event.time > time:
             break
@@ -40,6 +41,15 @@ def compute_state(events: list[ReplayEvent], time: float) -> ReplayState:
             if event.place is None:
                 raise ValueError()
             state.robot_path.append(event.place)
+
+    state.obstacles = []
+    obstacle_events = filter(lambda event: event.event == EventType.LIDAR and event.time <= time, events)
+    max_time_obstacle_events = max(event.time for event in obstacle_events)
+    current_obstacles = filter(lambda event: event.time == max_time_obstacle_events, obstacle_events)
+    for event in current_obstacles:
+        if event.place is None or event.number is None:
+            raise ValueError()
+        state.obstacles.append((event.place[0], event.place[1], event.number))
     return state
 
 class ReplayUI:
@@ -121,6 +131,9 @@ class ReplayUI:
                         (pair[0][0] / MM_TO_PIXEL_DIVIDER, (PLAYING_AREA_DEPTH - pair[0][1]) / MM_TO_PIXEL_DIVIDER),
                         (pair[1][0] / MM_TO_PIXEL_DIVIDER, (PLAYING_AREA_DEPTH - pair[1][1]) / MM_TO_PIXEL_DIVIDER)
                     )
+
+            for obstacle in self.state.obstacles:
+                pygame.draw.circle(self.screen, (125, 125, 125), (obstacle[0] / MM_TO_PIXEL_DIVIDER, obstacle[1] / MM_TO_PIXEL_DIVIDER, obstacle[2]), 10)
             
             pygame_widgets.update(events)
             pygame.display.update()

@@ -10,9 +10,8 @@ class EventType(int, Enum):
     POT_GONE = 3
     PLANT_GONE = 4
     PLANT_IN_PLANTER = 5
-    OBSTACLE_FOUND = 6
-    OBSTACLE_DISAPPEAR = 7
-    SCORE = 8
+    SCORE = 6
+    LIDAR = 7
 
     def string_name(self) -> str:
         match self:
