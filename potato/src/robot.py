@@ -121,7 +121,7 @@ class Robot:
 
     def handle_lidar(self):
         """Handle lidar and stop when needed"""
-        safety_distance = 200
+        safety_distance = 250
         cone_angle = math.pi / 3
 
         last_replay_log = 0
@@ -141,11 +141,15 @@ class Robot:
                 points_with_coordinates = lidar.get_lidar_coordinates(points_with_angle, x, y, theta)
                 field_filter = lidar.filter_on_field(points_with_coordinates)
                 points_with_angle = points_with_angle[field_filter, :]
-                points_with_angle = points_with_angle[lidar.filter_direction(points_with_angle, direction, cone_angle), :]
+                points_with_coordinates = points_with_coordinates[field_filter, :]
+                direction_filter = lidar.filter_direction(points_with_angle, direction, cone_angle)
+                points_with_angle = points_with_angle[direction_filter, :]
+                points_with_coordinates = points_with_coordinates[direction_filter, :]
+                intensity_filter = points_with_coordinates[:, 2] > 200
 
                 if current_time - last_replay_log >= 1:
                     last_replay_log = current_time
-                    for point in points_with_coordinates[field_filter, :]:
+                    for point in points_with_coordinates[intensity_filter, :]:
                         log_replay(ReplayEvent(EventType.LIDAR, (point[0], point[1], 0), point[2], current_time))
 
                 if self.robot_movement.is_moving():
