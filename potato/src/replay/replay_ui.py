@@ -28,6 +28,12 @@ class ReplayState:
 
 def compute_state(events: list[ReplayEvent], time: float) -> ReplayState:
     events.sort(key=lambda event: event.time)
+
+    if len(events) > 0:
+        max_time_events = max(event.time for event in events)
+    else:
+        max_time_events = MATCH_TIME
+    
     state = ReplayState()
     for event in events:
         if event.time > time:
@@ -43,13 +49,8 @@ def compute_state(events: list[ReplayEvent], time: float) -> ReplayState:
             state.robot_path.append(event.place)
 
     state.obstacles = []
-    obstacle_events = list(filter(lambda event: event.event == EventType.LIDAR and event.time <= time, events))
-    if len(obstacle_events) > 0:
-        max_time_obstacle_events = max(event.time for event in obstacle_events)
-    else:
-        max_time_obstacle_events = MATCH_TIME
-    current_obstacles = list(filter(lambda event: max_time_obstacle_events - 1 <= event.time <= max_time_obstacle_events, obstacle_events))
-    for event in current_obstacles:
+    obstacle_events = list(filter(lambda event: event.event == EventType.LIDAR and min(time, max_time_events) - 1 <= event.time <= min(time, max_time_events), events))
+    for event in obstacle_events:
         if event.place is None or event.number is None:
             raise ValueError()
         state.obstacles.append((event.place[0], event.place[1], event.number))
