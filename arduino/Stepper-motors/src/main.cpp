@@ -4,7 +4,6 @@
 #include "helpers/path/line.h"
 #include "helpers/path/rotation.h"
 #include "helpers/path/stayOnPoint.h"
-#include "readingComponents/accelero.h"
 #include "readingComponents/incrementalEncoder.h"
 #include "movingComponents/enslavement.h"
 #include "movingComponents/pathQueue.h"
@@ -18,15 +17,13 @@ bool hasSentDone = false;
 
 void setup()
 {
+  Serial.begin(9600);
   if(LOGGING)
   {
-    Serial.begin(9600);
     Serial.println("Setup robot");
   }
   Serial2.begin(115200); // Connection with the potato
-
   setupMotors();
-  setupAccelero();
   setupIncrementalEncoders();
   setInitialPosition(0, 0, Angle(0));
   setCurrentPath(new StayOnPoint(0, 0, 0));

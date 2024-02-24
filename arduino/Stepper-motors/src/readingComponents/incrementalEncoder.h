@@ -4,8 +4,9 @@
 #include <stdint.h>
 
 void setupIncrementalEncoders();
-const int32_t getIncrementalEncoderLeftValue();
-const int32_t getIncrementalEncoderRightValue();
+void updateIncrementalEncodersValue();
+const int64_t getIncrementalEncoderLeftValue();
+const int64_t getIncrementalEncoderRightValue();
 
 #endif
 

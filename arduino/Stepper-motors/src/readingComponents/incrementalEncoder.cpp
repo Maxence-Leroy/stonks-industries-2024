@@ -1,67 +1,63 @@
 #include <Arduino.h>
 
-#include "../helpers/robotConfig.h"
 #include "incrementalEncoder.h"
+#include "AS5048A.h"
+#include "../helpers/robotConfig.h"
 
-volatile int32_t leftValue = 0;
-volatile int32_t rightValue = 0;
+int64_t leftValue = 0;
+int64_t rightValue = 0;
 
-const int32_t getIncrementalEncoderLeftValue() {
+int16_t previousLeftAngle = 0;
+int16_t previousRightAngle = 0;
+
+AS5048A rightEncoder(INCREMENTAL_ENCODER_RIGHT_PIN, LOGGING);
+AS5048A leftEncoder(INCREMENTAL_ENCODER_LEFT_PIN, LOGGING);
+
+const int64_t getIncrementalEncoderLeftValue() {
     return leftValue;
 }
 
-const int32_t getIncrementalEncoderRightValue() 
+const int64_t getIncrementalEncoderRightValue() 
 {
     return rightValue;
 }
 
-void increase1Left() 
-{
-    if(PINE & (1 << PE5))
-    {
-        leftValue += 1;
-    }
-    else
-    {
-        leftValue -= 1;
-    }
-}
+void updateIncrementalEncodersValue() {
+    int16_t leftAngle = leftEncoder.getRotation();
 
-void increase2Left() 
-{
-    if(PINE & (1 << PE4))
-    {
-        leftValue -= 1;
+    if(previousLeftAngle < -AS5048A_MAX_VALUE / 2 && leftAngle > AS5048A_MAX_VALUE / 2) {
+        // The new rotation should be negative
+        leftValue += leftAngle - 2 * AS5048A_MAX_VALUE - previousLeftAngle;
+    } else if(previousLeftAngle > AS5048A_MAX_VALUE / 2 && leftAngle < - AS5048A_MAX_VALUE / 2) {
+        // The new rotation should be positive
+        leftValue += leftAngle + 2 * AS5048A_MAX_VALUE - previousLeftAngle;
+    } else {
+        leftValue += leftAngle - previousLeftAngle;
     }
-    else {
-        leftValue += 1;
+
+    previousLeftAngle = leftAngle;
+
+
+    int16_t rightAngle = rightEncoder.getRotation();
+
+    if(previousRightAngle < -AS5048A_MAX_VALUE / 2 && rightAngle > AS5048A_MAX_VALUE / 2) {
+        // The new rotation should be negative
+        rightValue += rightAngle - 2 * AS5048A_MAX_VALUE - previousRightAngle;
+    } else if(previousRightAngle > AS5048A_MAX_VALUE / 2 && rightAngle < - AS5048A_MAX_VALUE / 2) {
+        // The new rotation should be positive
+        rightValue += rightAngle + 2 * AS5048A_MAX_VALUE - previousRightAngle;
+    } else {
+        rightValue += rightAngle - previousRightAngle;
     }
-}
 
-void increase1Right() 
-{
-    if(PIND & (1 << PD3))
-        rightValue += 1;
-    else
-        rightValue -= 1;
-}
-
-void increase2Right() 
-{
-    if(PIND & (1 << PD2))
-        rightValue -= 1;
-    else
-        rightValue += 1;
+    previousRightAngle = rightAngle;
 }
 
 void setupIncrementalEncoders()
 {
-  pinMode(INCREMENTAL_ENCODER_LEFT_PIN_1, INPUT);
-  pinMode(INCREMENTAL_ENCODER_LEFT_PIN_2, INPUT);
-  pinMode(INCREMENTAL_ENCODER_RIGHT_PIN_1, INPUT);
-  pinMode(INCREMENTAL_ENCODER_RIGHT_PIN_2, INPUT);
-  attachInterrupt(digitalPinToInterrupt(INCREMENTAL_ENCODER_LEFT_PIN_1), increase1Left, RISING);
-  attachInterrupt(digitalPinToInterrupt(INCREMENTAL_ENCODER_LEFT_PIN_2), increase2Left, RISING);
-  attachInterrupt(digitalPinToInterrupt(INCREMENTAL_ENCODER_RIGHT_PIN_1), increase1Right, RISING);
-  attachInterrupt(digitalPinToInterrupt(INCREMENTAL_ENCODER_RIGHT_PIN_2), increase2Right, RISING);
+  rightEncoder.begin();
+  leftEncoder.begin();
+
+  previousRightAngle = rightEncoder.getRotation();
+  previousLeftAngle = leftEncoder.getRotation();
 }

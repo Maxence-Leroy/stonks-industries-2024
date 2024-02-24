@@ -9,7 +9,7 @@
 
 double currentX = 0, currentY = 0;
 Angle currentTheta = Angle(0);
-int32_t incrementalCounterLeft = 0, incrementalCounterRight = 0;
+int64_t incrementalCounterLeft = 0, incrementalCounterRight = 0;
 long int previousTime = 0, previousPositionPrint = 0;
 
 double rotationError[3] = {0, 0, 0};
@@ -73,8 +73,10 @@ void setCurrentPath(Path* path) {
 }
 
 void enslave(long time) {
-    int32_t newIncrementalLeft = getIncrementalEncoderLeftValue();
-    int32_t newIncrementalRight = getIncrementalEncoderRightValue(); 
+    updateIncrementalEncodersValue();
+
+    int64_t newIncrementalLeft = getIncrementalEncoderLeftValue();
+    int64_t newIncrementalRight = getIncrementalEncoderRightValue(); 
 
     currentX += cos(currentTheta.toDouble())*(newIncrementalRight+newIncrementalLeft-incrementalCounterLeft-incrementalCounterRight)*K_INC/2;
     currentY += sin(currentTheta.toDouble())*(newIncrementalRight+newIncrementalLeft-incrementalCounterLeft-incrementalCounterRight)*K_INC/2;
