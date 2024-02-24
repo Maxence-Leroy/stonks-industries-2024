@@ -54,7 +54,7 @@ class Screen:
 
         font = ImageFont.load_default(size = 20)
 
-        draw.text((0, 0), f"Time : {'{:.2f}'.format(time)}s", font=font, fill=255)
+        draw.text((0, 0), f"Time : {'{:.0f}'.format(time)}s", font=font, fill=255)
         draw.text((0, 32), f"Score : {score}", font=font, fill=255)
         self.disp.image(image)
         self.disp.show()
