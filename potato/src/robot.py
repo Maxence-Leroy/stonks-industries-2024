@@ -18,6 +18,7 @@ from src.logging import logging_debug, logging_info, logging_error
 from src.path_smoother import smooth_path
 from src.replay.base_classes import ReplayEvent, EventType
 from src.replay.save_replay import log_replay
+from src.screen import screen
 from src.sts3215 import STS3215
 
 class RobotMovement(Enum):
@@ -91,6 +92,9 @@ class Robot:
         self.stepper_motors = create_stepper_motors()
 
         self.current_location = AbsoluteCoordinates(0, 0, 0)
+        self.score = 0
+
+        screen.show_robot_name()
 
         self.sts3215 = STS3215()
 
@@ -115,13 +119,38 @@ class Robot:
         thread_lidar = threading.Thread(target=self.handle_lidar)
         thread_lidar.start()
 
+        thread_screen = threading.Thread(target=self.update_screen)
+        thread_screen.start()
+
+    def update_screen(self):
+        """Fonction to update the content of the I2C screen with time and score"""
+        previous_score = 0
+        previous_time = 0
+
+        while self.start_time == 0 or self.get_current_time() <= MATCH_TIME + 5:
+            if self.start_time == 0:
+                time.sleep(1)
+                continue
+            
+            current_time = self.get_current_time()
+            if int(current_time) != int(previous_time) or previous_score != self.score:
+                previous_score = self.score
+                previous_time = current_time
+                
+                try:
+                    screen.show_time_score(min(MATCH_TIME, current_time), self.score)
+                except Exception as ex:
+                    logging_error(f"Error with screen: {ex}")
+            
+            time.sleep(0.5)
+
     def get_current_time(self) -> float:
         """Get current time on the match (normally between 0 and 100)"""
         return time.time() - self.start_time
 
     def handle_lidar(self):
         """Handle lidar and stop when needed"""
-        safety_distance = 200
+        safety_distance = 250
         cone_angle = math.pi / 3
 
         last_replay_log = 0
@@ -140,13 +169,18 @@ class Robot:
                 points_with_angle = lidar.scan_points()
                 points_with_coordinates = lidar.get_lidar_coordinates(points_with_angle, x, y, theta)
                 field_filter = lidar.filter_on_field(points_with_coordinates)
-                points_with_angle = points_with_angle[field_filter, :]
-                points_with_angle = points_with_angle[lidar.filter_direction(points_with_angle, direction, cone_angle), :]
+                points_with_angle = points_with_angle[field_filter, :] if len(field_filter) > 0 else points_with_angle
+                points_with_coordinates = points_with_coordinates[field_filter, :] if len(field_filter) > 0 else points_with_coordinates
+                direction_filter = lidar.filter_direction(points_with_angle, direction, cone_angle)
+                points_with_angle = points_with_angle[direction_filter, :] if len(direction_filter) > 0 else points_with_angle
+                points_with_coordinates = points_with_coordinates[direction_filter, :] if len(direction_filter) > 0 else points_with_coordinates
+                intensity_filter = points_with_coordinates[:, 2] > 200 if len(points_with_coordinates) > 0 else np.array([])
 
                 if current_time - last_replay_log >= 1:
                     last_replay_log = current_time
-                    for point in points_with_coordinates[field_filter, :]:
-                        log_replay(ReplayEvent(EventType.LIDAR, (point[0], point[1], 0), point[2], current_time))
+                    if len(points_with_coordinates) > 0:
+                        for point in points_with_coordinates[intensity_filter, :]:
+                            log_replay(ReplayEvent(EventType.LIDAR, (point[0], point[1], 0), point[2], current_time))
 
                 if self.robot_movement.is_moving():
                     if len(points_with_angle) > 0:

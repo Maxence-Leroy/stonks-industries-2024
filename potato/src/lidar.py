@@ -24,12 +24,12 @@ class Lidar:
         self.laser.setlidaropt(ydlidar.LidarPropSerialBaudrate, 230400)
         self.laser.setlidaropt(ydlidar.LidarPropLidarType, ydlidar.TYPE_TRIANGLE)
         self.laser.setlidaropt(ydlidar.LidarPropDeviceType, ydlidar.YDLIDAR_TYPE_SERIAL)
-        self.laser.setlidaropt(ydlidar.LidarPropScanFrequency, 10.0)
+        self.laser.setlidaropt(ydlidar.LidarPropScanFrequency, 12.0)
         self.laser.setlidaropt(ydlidar.LidarPropSampleRate, 5)
         self.laser.setlidaropt(ydlidar.LidarPropSingleChannel, False)
         self.laser.setlidaropt(ydlidar.LidarPropMaxAngle, 180.0)
         self.laser.setlidaropt(ydlidar.LidarPropMinAngle, -180.0)
-        self.laser.setlidaropt(ydlidar.LidarPropMaxRange, 12.0)
+        self.laser.setlidaropt(ydlidar.LidarPropMaxRange, 4.0)
         self.laser.setlidaropt(ydlidar.LidarPropMinRange, 0.12)
         self.laser.setlidaropt(ydlidar.LidarPropIntenstiy, True)
 
@@ -55,9 +55,13 @@ class Lidar:
 
 
     def filter_on_field(self, coordinates_of_detection: NDArray[Shape["360, 3"], Float]) -> NDArray[Shape["200, 1"], Bool]:
+        if len(coordinates_of_detection) == 0:
+            return np.array([])
         return (coordinates_of_detection[:, 0] >= 0) & (coordinates_of_detection[:, 0] <= PLAYING_AREA_WIDTH) &  (coordinates_of_detection[:, 1] >= 0) & (coordinates_of_detection[:, 1] <= PLAYING_AREA_DEPTH)
     
     def filter_direction(self, points_with_angle: NDArray[Shape["360, 3"], Float], direction: LidarDirection, cone_angle: float) -> NDArray[Shape["200, 1"], Bool]:
+        if len(points_with_angle) == 0:
+            return np.array([])
         if direction == LidarDirection.FORWARD:
             return (-cone_angle <= points_with_angle[:, 0]) & (points_with_angle[:, 0] <= cone_angle)
         elif direction == LidarDirection.BACKWARD:
