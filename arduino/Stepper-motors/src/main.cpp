@@ -14,6 +14,7 @@ Path* path;
 String command;
 
 bool hasSentDone = false;
+bool hasChangedPath = false;
 
 void setup()
 {
@@ -37,6 +38,11 @@ void setup()
 
 void loop()
 {
+  if(micros() > 3000000 && !hasChangedPath) {
+    setCurrentPath(new Line(0, 0, 200, 0, 500, 250));
+    hasChangedPath = true;
+    getCurrentPath()->start();
+  }
   if(Serial2.available() > 0) 
   {
     command = Serial2.readStringUntil('\n');

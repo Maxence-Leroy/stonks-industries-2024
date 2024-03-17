@@ -78,6 +78,13 @@ void enslave(long time) {
     int64_t newIncrementalLeft = getIncrementalEncoderLeftValue();
     int64_t newIncrementalRight = getIncrementalEncoderRightValue(); 
 
+    // long left = (long)newIncrementalLeft;
+    // long right = (long)newIncrementalRight;
+    // Serial.print("Left ");
+    // Serial.print(left);
+    // Serial.print(" right ");
+    // Serial.println(right);
+
     currentX += cos(currentTheta.toDouble())*(newIncrementalRight+newIncrementalLeft-incrementalCounterLeft-incrementalCounterRight)*K_INC/2;
     currentY += sin(currentTheta.toDouble())*(newIncrementalRight+newIncrementalLeft-incrementalCounterLeft-incrementalCounterRight)*K_INC/2;
     currentTheta = Angle(currentTheta.toDouble() + atan((newIncrementalRight-newIncrementalLeft-incrementalCounterRight+incrementalCounterLeft)*K_INC/WIDTH));
@@ -134,7 +141,7 @@ void enslave(long time) {
                 + positionError[I] * iPos
                 + positionError[D] * dPos;
 
-    /* if(LOGGING)
+    if(LOGGING)
     {
         Serial.print("Pos error ");
         Serial.print(currentPositionError);
@@ -144,7 +151,7 @@ void enslave(long time) {
         Serial.print(orderP);
         Serial.print(" order R ");
         Serial.println(orderR);
-    }*/
+    }
 
  
     if(!currentPath->isGoingBackwards())
