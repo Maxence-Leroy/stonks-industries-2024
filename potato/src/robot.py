@@ -87,12 +87,14 @@ class Robot:
     robot_movement: RobotMovement
     current_location: AbsoluteCoordinates
     last_instruction: str
+    servo_ids: list[int]
 
     def __init__(self) -> None:
         self.stepper_motors = create_stepper_motors()
 
         self.current_location = AbsoluteCoordinates(0, 0, 0)
         self.score = 0
+        self.servo_ids = []
 
         screen.show_robot_name()
 

@@ -180,8 +180,7 @@ class Action:
     def handle_timeout_error_while_doing(self) -> None:
         """Method to be overriden in children classes. This method is called if the action times out while doing it. 
         It is not called if the action times out before doing it."""
-
-        pass
+        robot.sts3215.move_continuous(robot.servo_ids, 0)
 
 
 class ActionsSequence(Action):
