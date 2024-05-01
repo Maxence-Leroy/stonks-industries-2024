@@ -3,6 +3,7 @@
 #include "../movingComponents/stepperMotors.h"
 #include "../movingComponents/enslavement.h"
 #include "../movingComponents/pathQueue.h"
+#include "../readingComponents/incrementalEncoder.h"
 #include "../helpers/path/heavyside_position.h"
 #include "../helpers/path/heavyside_rotation.h"
 #include "../helpers/path/rotation.h"
@@ -42,7 +43,9 @@ void handleInitialPosition(String command)
     double y = coordinates[1].toDouble();
     Angle theta = Angle(coordinates[2].toDouble());
     setInitialPosition(x, y, theta);
+    resetEncoders();
     setCurrentPath(new StayOnPoint(x, y, theta));
+    getCurrentPath()->start();
 }
 
 void handleDestination(String destinationString)

@@ -7,6 +7,7 @@ void setupIncrementalEncoders();
 void updateIncrementalEncodersValue();
 const int64_t getIncrementalEncoderLeftValue();
 const int64_t getIncrementalEncoderRightValue();
+void resetEncoders();
 
 #endif
 

@@ -141,6 +141,7 @@ void enslave(long time) {
                 + positionError[I] * iPos
                 + positionError[D] * dPos;
 
+    
     if(LOGGING)
     {
         Serial.print("Pos error ");

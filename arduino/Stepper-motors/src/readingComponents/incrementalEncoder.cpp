@@ -55,9 +55,13 @@ void updateIncrementalEncodersValue() {
 
 void setupIncrementalEncoders()
 {
-  rightEncoder.begin();
-  leftEncoder.begin();
+    rightEncoder.begin();
+    leftEncoder.begin();
 
-  previousRightAngle = rightEncoder.getRotation();
-  previousLeftAngle = leftEncoder.getRotation();
+    resetEncoders();
+}
+
+void resetEncoders() {
+    previousRightAngle = rightEncoder.getRotation();
+    previousLeftAngle = leftEncoder.getRotation();
 }

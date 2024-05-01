@@ -28,6 +28,7 @@ void setup()
   setupIncrementalEncoders();
   setInitialPosition(0, 0, Angle(0));
   setCurrentPath(new StayOnPoint(0, 0, 0));
+  getCurrentPath()->start();
   setLeftMotorSpeed(0);
   setRightMotorSpeed(0);
   if(LOGGING)
@@ -38,11 +39,6 @@ void setup()
 
 void loop()
 {
-  if(micros() > 3000000 && !hasChangedPath) {
-    setCurrentPath(new Line(0, 0, 200, 0, 500, 250));
-    hasChangedPath = true;
-    getCurrentPath()->start();
-  }
   if(Serial2.available() > 0) 
   {
     command = Serial2.readStringUntil('\n');
