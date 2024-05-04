@@ -97,8 +97,6 @@ class Robot:
         self.score = 0
         self.servo_ids = []
 
-        screen.show_robot_name()
-
         self.sts3215 = STS3215()
 
         self.start_switch = RobotSwitchReader(
@@ -144,12 +142,12 @@ class Robot:
                 playing_area.side = Side.YELLOW
                 self.set_initial_position(SideRelatedCoordinates(0, 0, 0, playing_area.side))
                 logging_info("Yellow side")
-                # screen.update_side()
+                screen.show_robot_name_and_side(playing_area.side)
             elif self.side_switch.get_value() is False and playing_area.side is Side.YELLOW:
                 playing_area.side = Side.BLUE
                 self.set_initial_position(SideRelatedCoordinates(0, 0, 0, playing_area.side))
                 logging_info("Blue side")
-                # screen.update_side()
+                screen.show_robot_name_and_side(playing_area.side)
 
     def update_screen(self):
         """Fonction to update the content of the I2C screen with time and score"""
