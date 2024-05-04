@@ -13,24 +13,23 @@ from src.robot import robot
 
 def main():
     playing_area.side = Side.BLUE
-    servo_id = 7
-    robot.servo_ids = [servo_id]
+    robot.servo_ids = [7]
     open_replay_file()
+
+    robot.wait_to_start()
+
     strategy = ActionsSequence(
         timer_limit=MATCH_TIME,
         actions= [
-            Move(MoveForward(-150)),
-            Move(MoveForward(-150)),
+            Move(SideRelatedCoordinates(500, 0, 0, playing_area.side)),
+            Move(SideRelatedCoordinates(500, 500, 0, playing_area.side)),
+            Move(SideRelatedCoordinates(0, 500, 0, playing_area.side)),
+            Move(SideRelatedCoordinates(0, 0, 0, playing_area.side), forced_angle=True)
         ],
         allows_fail=False
     )
-    robot.set_initial_position(SideRelatedCoordinates(0, 0, 0, playing_area.side))
-    #robot.set_initial_position(SideRelatedCoordinates(ROBOT_DEPTH / 2 + 100, ROBOT_WIDTH / 2 + 100, 0, playing_area.side))
-    playing_area.compute_costs()
 
     logging_info(str(strategy))
-
-    time.sleep(2.0)
 
     robot.start_time = time.time()
     start()

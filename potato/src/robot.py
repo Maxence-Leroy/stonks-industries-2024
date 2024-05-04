@@ -6,12 +6,13 @@ import threading
 import time
 from typing import Self, Optional
 
-from src.constants import MATCH_TIME, D_STAR_FACTOR, PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH
+from src.constants import MATCH_TIME, D_STAR_FACTOR, PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH, Side
 from src.d_star import DStarLight, State
 from src.helpers.pairwise import pairwise
 from src.playing_area import playing_area
 from src.robot_actuator import create_robot_binary_actuator
 from src.robot_stepper_motors import create_stepper_motors
+from src.robot_switch_reader import RobotSwitchReader
 from src.lidar import lidar, LidarDirection
 from src.location.location import AbsoluteCoordinates, SideRelatedCoordinates
 from src.logging import logging_debug, logging_info, logging_error
@@ -100,6 +101,14 @@ class Robot:
 
         self.sts3215 = STS3215()
 
+        self.start_switch = RobotSwitchReader(
+            chip="gpiochip1", line=97, name="Start switch"
+        )
+
+        self.side_switch = RobotSwitchReader(
+            chip="gpiochip1", line=96, name="Side switch"
+        )
+
         self.robot_movement = RobotMovement.FINISH_MOVING
         self.start_time = 0
 
@@ -123,6 +132,24 @@ class Robot:
 
         thread_screen = threading.Thread(target=self.update_screen)
         thread_screen.start()
+
+    def wait_to_start(self):
+        """
+        Function to set up the side and position of the robot before the start of the game.
+        Returns when the start switch changes its value
+        """
+        while self.start_switch.get_value() is False:
+            time.sleep(0.1)
+            if self.side_switch.get_value() is True and playing_area.side is Side.BLUE:
+                playing_area.side = Side.YELLOW
+                self.set_initial_position(SideRelatedCoordinates(0, 0, 0, playing_area.side))
+                logging_info("Yellow side")
+                # screen.update_side()
+            elif self.side_switch.get_value() is False and playing_area.side is Side.YELLOW:
+                playing_area.side = Side.BLUE
+                self.set_initial_position(SideRelatedCoordinates(0, 0, 0, playing_area.side))
+                logging_info("Blue side")
+                # screen.update_side()
 
     def update_screen(self):
         """Fonction to update the content of the I2C screen with time and score"""
