@@ -9,7 +9,7 @@
 #include "../helpers/path/rotation.h"
 #include "../helpers/path/stayOnPoint.h"
 
-void extractCoordinates(String command, String coordinates[6]) {
+void extractCoordinates(String command, String coordinates[9]) {
     int coordinatesCount = 0;
     command.replace('(', ' ');
     command.replace(')', ' ');
@@ -55,7 +55,7 @@ void handleDestination(String destinationString)
         Serial.print("destination string ");
         Serial.println(destinationString);
     }
-    String coordinates[6];
+    String coordinates[9];
     extractCoordinates(destinationString, coordinates);
     Destination* destination = new Destination(
         coordinates[0].toDouble(),
@@ -63,7 +63,10 @@ void handleDestination(String destinationString)
         Angle(coordinates[2].toDouble()),
         coordinates[3].toInt() == 1,
         coordinates[4].toInt() == 1,
-        coordinates[5].toInt() == 1
+        coordinates[5].toInt() == 1,
+        coordinates[6].toInt(),
+        coordinates[7].toInt(),
+        coordinates[8].toInt() == 1
     );
     addDestination(destination);
 }

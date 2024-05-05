@@ -24,6 +24,8 @@ class Path
     bool isGoingBackwards() const;
 
     virtual bool sendDone() const;
+
+    virtual bool needsPrecision() const;
 };
 
 

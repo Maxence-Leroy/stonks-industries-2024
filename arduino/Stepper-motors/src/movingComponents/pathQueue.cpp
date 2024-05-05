@@ -11,10 +11,10 @@
 Queue<Path>* queue = new Queue<Path>();
 Queue<Destination>* destinationQueue = new Queue<Destination>();
 
-const double maxSpeed = 375;
-const double maxAcceleration = 250;
-const double maxSpeedRotation = 2;
-const double maxAccelerationRotation = 2;
+const double maxSpeedLine = 450;
+const double maxAccelerationLine = 1100;
+const double maxSpeedRotation = 4;
+const double maxAccelerationRotation = 8;
 
 void addDestination(Destination* destination)
 {
@@ -37,6 +37,9 @@ bool extractNextDestination()
     bool backwards = nextDestination->backwards;
     bool forcedAngle = nextDestination->forcedAngle;
     bool onTheSpot = nextDestination->onTheSpot;
+    int maxSpeed = nextDestination->maxSpeed;
+    int maxAcceleration = nextDestination->maxAcceleration;
+    bool precision = nextDestination->precision;
     
     if(LOGGING)
     {
@@ -87,13 +90,13 @@ bool extractNextDestination()
                 Serial.print(" to ");
                 Serial.println(requiredTheta.toDouble());
             }
-            queue->add(new Rotation(currentX, currentY, currentTheta, requiredTheta, maxSpeedRotation, maxAccelerationRotation));
+            queue->add(new Rotation(currentX, currentY, currentTheta, requiredTheta, maxSpeed / 100.0 * maxSpeedRotation, maxAcceleration / 100.0 * maxAccelerationRotation, precision));
         }
         if(LOGGING)
         {
             Serial.println("New line");
         }
-        queue->add(new Line(currentX, currentY, x, y, backwards ? -maxSpeed : maxSpeed, maxAcceleration));
+        queue->add(new Line(currentX, currentY, x, y, maxSpeed / 100.0 * (backwards ? -maxSpeedLine : maxSpeedLine), maxAcceleration / 100.0 * maxAccelerationLine, precision));
         if(backwards)
         {
             requiredTheta -= M_PI;
@@ -114,7 +117,7 @@ bool extractNextDestination()
             xRotation = x;
             yRotation = y;
         }
-        queue->add(new Rotation(xRotation, yRotation, requiredTheta, theta, maxSpeedRotation, maxAccelerationRotation));
+        queue->add(new Rotation(xRotation, yRotation, requiredTheta, theta, maxSpeed / 100.0 * maxSpeedRotation, maxAcceleration / 100.0 * maxAccelerationRotation, precision));
     }
     return true;
 }

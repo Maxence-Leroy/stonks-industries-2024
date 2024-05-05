@@ -4,7 +4,7 @@
 #include "../maths_helpers.h"
 #include "rotation.h"
 
-Rotation::Rotation(double x, double y, Angle startTheta, Angle endTheta, double maxSpeed, double maxAcceleration):Path()
+Rotation::Rotation(double x, double y, Angle startTheta, Angle endTheta, double maxSpeed, double maxAcceleration, bool precision):Path()
 {
   mX = x;
   mY = y;
@@ -12,6 +12,7 @@ Rotation::Rotation(double x, double y, Angle startTheta, Angle endTheta, double 
   mEndTheta = endTheta;
   mMaxSpeed = maxSpeed;
   mMaxAcceleration = maxAcceleration;
+  mPrecision = precision;
 
   if((mEndTheta-mStartTheta).toDouble()<0)
     mDirection = A_TRIGO_DIRECTION;
@@ -89,5 +90,7 @@ double Rotation::rotationError(double x, double y, Angle theta, long time)
   }
 }
 
-
+bool Rotation::needsPrecision() const {
+  return mPrecision;
+}
 

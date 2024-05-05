@@ -2,8 +2,10 @@
 
 #include "line.h"
 
-Line::Line(double xStart, double yStart, double xEnd, double yEnd,  double maxSpeed, double maxAcceleration):Path()
+Line::Line(double xStart, double yStart, double xEnd, double yEnd,  double maxSpeed, double maxAcceleration, bool precision):Path()
 {
+    mPrecision = precision;
+
     mStart[X] = xStart;
     mStart[Y] = yStart;
 
@@ -151,4 +153,8 @@ double Line::rotationError(double x, double y, Angle theta, long time)
   {
     return baseRotationError;
   }
+}
+
+bool Line::needsPrecision() const {
+  return mPrecision;
 }

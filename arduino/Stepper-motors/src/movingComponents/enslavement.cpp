@@ -116,7 +116,7 @@ void enslave(long time) {
     // Compute PID
     positionError[D] = (currentPositionError-positionError[P])/elapsedTimeInS;
     positionError[P] = currentPositionError;
-    if (positionError[P] > 1)
+    if (positionError[P] > ERROR_MARGIN_POS / 6)
     {
         positionError[I] += positionError[P]*elapsedTimeInS;
     }
@@ -125,7 +125,7 @@ void enslave(long time) {
 
     rotationError[D] = (currentRotationError-rotationError[P])/elapsedTimeInS;
     rotationError[P] = currentRotationError;
-    if (rotationError[P] > 1)
+    if (rotationError[P] > 1 /*ERROR_MARGIN_ROT / 6*/)
     {
         rotationError[I] += rotationError[P]*elapsedTimeInS;
     }
@@ -154,6 +154,13 @@ void enslave(long time) {
         Serial.println(orderR);
     }
 
+    // Serial.print("(");
+    // Serial.print(currentX);
+    // Serial.print(";");
+    // Serial.print(currentY);
+    // Serial.print(";");
+    // Serial.print(currentTheta.toDouble());
+    // Serial.print(")\n");
  
     if(!currentPath->isGoingBackwards())
     {

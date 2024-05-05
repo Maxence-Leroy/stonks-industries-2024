@@ -6,7 +6,7 @@
 class Destination
 {
     public:
-        Destination(double iX, double iY, Angle iTheta, bool iBackwards, bool iForcedAngle, bool iOnTheSpot);
+        Destination(double iX, double iY, Angle iTheta, bool iBackwards, bool iForcedAngle, bool iOnTheSpot, int iMaxSpeed, int iMaxAcceleration, bool iPrecision);
         ~Destination();
         double x;
         double y;
@@ -14,6 +14,9 @@ class Destination
         bool backwards;
         bool forcedAngle;
         bool onTheSpot;
+        int maxSpeed;
+        int maxAcceleration;
+        bool precision;
 };
 
 

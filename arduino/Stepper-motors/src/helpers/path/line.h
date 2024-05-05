@@ -14,9 +14,10 @@ class Line : public Path
     Angle mTheta;
     double mStart[2];
     double mEnd[2];
+    bool mPrecision;
 
   public:
-    Line(double xStart, double yStart, double xEnd, double yEnd, double maxSpeed, double maxAcceleration);
+    Line(double xStart, double yStart, double xEnd, double yEnd, double maxSpeed, double maxAcceleration, bool precision);
     virtual ~Line();
 
     double positionError(double x, double y, Angle theta, long time);
@@ -25,6 +26,8 @@ class Line : public Path
 
     inline double getEndX(){return mEnd[X];}
     inline double getEndY(){return mEnd[Y];}
+
+    bool needsPrecision() const;
 };
 
 #endif

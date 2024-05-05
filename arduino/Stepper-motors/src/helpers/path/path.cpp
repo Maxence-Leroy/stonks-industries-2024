@@ -46,3 +46,7 @@ bool Path::isOver(long time) const
 bool Path::sendDone() const {
     return true;
 }
+
+bool Path::needsPrecision() const {
+    return true;
+}

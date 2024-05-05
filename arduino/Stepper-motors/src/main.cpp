@@ -39,6 +39,13 @@ void setup()
 
 void loop()
 {
+  // if(!hasChangedPath && micros() > 2 * SEC_TO_MICROS_MULTIPLICATOR) {
+  //   hasChangedPath = true;
+  //   addDestination(new Destination(500, 0, 0, false, false, false));
+  //   addDestination(new Destination(500, 500, 0, false, false, false));
+  //   addDestination(new Destination(0, 500, 0, false, false, false));
+  //   addDestination(new Destination(0, 0, 0, false, true, false));
+  // }
   if(Serial2.available() > 0) 
   {
     command = Serial2.readStringUntil('\n');
@@ -76,8 +83,9 @@ void loop()
   Path* currentPath = getCurrentPath();
   double positionError = currentPath->positionError(getCurrentX(), getCurrentY(), getCurrentTheta(), currentTime);
   double rotationError = currentPath->rotationError(getCurrentX(), getCurrentY(), getCurrentTheta(), currentTime);
-  if(currentPath->isOver(currentTime) && abs(positionError) < 3 && abs(rotationError) < 0.01)
+  if(currentPath->isOver(currentTime) && (!currentPath->needsPrecision() || ((positionError) < ERROR_MARGIN_POS && abs(rotationError) < ERROR_MARGIN_ROT)))
   {
+    Serial.println("Get next path");
     Path* nextPath = getNextPath();
     if(nextPath)
     {
@@ -100,6 +108,7 @@ void loop()
         }
         if(currentPath->sendDone()) {
           Serial2.print("DONE\n");
+          Serial.println("DONE");
         }
         hasSentDone = true;
       } 
