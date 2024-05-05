@@ -9,6 +9,10 @@ ROBOT_WIDTH = 325
 ROBOT_DEPTH = 155
 mock_robot = False # Use real serial or mock it
 
+ID_SERVO_PLANT_LEFT = 5
+ID_SERVO_PLANT_MID = 7
+ID_SERVO_PLANT_RIGHT = 6
+
 class Side(Enum):
     BLUE = 0
     YELLOW = 1

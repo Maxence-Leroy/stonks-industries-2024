@@ -105,7 +105,7 @@ class RelativeMove(Location):
         self.theta = theta
 
     def __str__(self) -> str:
-        return f"(x: {self.x}, y: {self.y}, θ: {self.theta})"
+        return f"Relative (x: {self.x}, y: {self.y}, θ: {self.theta})"
 
     def getLocation(self, current_x: float, current_y: float, current_theta: float) -> Optional[tuple[float, float, float]]:
         return (current_x + self.x, current_y + self.y, current_theta + self.theta)
