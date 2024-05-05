@@ -33,4 +33,8 @@
 
 #define LOGGING true
 
+#define LASER_LEFT_PIN A0
+#define LASER_MID_PIN A1
+#define LASER_RIGHT_PIN A2
+
 #endif

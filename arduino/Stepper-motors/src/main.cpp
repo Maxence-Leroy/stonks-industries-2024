@@ -4,6 +4,7 @@
 #include "helpers/path/line.h"
 #include "helpers/path/rotation.h"
 #include "helpers/path/stayOnPoint.h"
+#include "laserDetection/detector.h"
 #include "readingComponents/incrementalEncoder.h"
 #include "movingComponents/enslavement.h"
 #include "movingComponents/pathQueue.h"
@@ -54,7 +55,14 @@ void loop()
       Serial.print("command: ");
       Serial.println(command);
     }
-    if(command.startsWith("INIT")) 
+    if(command == "L Start") 
+    {
+      startLaserDetection();
+    }
+    else if(command == "L Stop") {
+      stopLaserDetection();
+    }
+    else if(command.startsWith("INIT")) 
     {
       handleInitialPosition(command);
     }
@@ -74,6 +82,9 @@ void loop()
       handleMoveCommand(command);
     }
   }
+
+  laserDetect();
+
   long currentTime = micros();
   if(getCurrentPath())
   {
