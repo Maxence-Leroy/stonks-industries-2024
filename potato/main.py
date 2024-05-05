@@ -24,10 +24,13 @@ def main():
     strategy = ActionsSequence(
         timer_limit=MATCH_TIME,
         actions= [
+            start_magnets(),
             Move(SideRelatedCoordinates(100, 0, 0, playing_area.side)),
             start_capturing_plants(),
-            Move(SideRelatedCoordinates(200, 0, 0, playing_area.side), max_speed = 20),
-            stop_capturing_plants()
+            Move(SideRelatedCoordinates(300, 0, 0, playing_area.side), max_speed = 20, max_acceleration = 20),
+            Wait(20),
+            stop_capturing_plants(),
+            stop_magnets()
         ],
         allows_fail=False
     )
