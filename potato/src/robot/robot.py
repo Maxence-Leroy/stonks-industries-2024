@@ -19,8 +19,8 @@ from src.logging import logging_debug, logging_info, logging_error
 from src.path_smoother import smooth_path
 from src.replay.base_classes import ReplayEvent, EventType
 from src.replay.save_replay import log_replay
-from src.screen import screen
-from src.sts3215 import STS3215
+from src.robot.screen import screen
+from src.robot.sts3215 import STS3215
 
 class RobotMovement(Enum):
     FINISH_MOVING = 0
