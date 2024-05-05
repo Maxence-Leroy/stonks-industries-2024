@@ -1,4 +1,4 @@
-from src.robot import robot
+from src.robot.robot import robot
 
 if __name__ == "__main__":
     magnets = [robot.magnet1, robot.magnet2, robot.magnet3]

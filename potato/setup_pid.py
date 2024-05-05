@@ -1,4 +1,4 @@
-from src.robot import robot
+from src.robot.robot import robot
 from src.replay.save_replay import open_replay_file, start_replay
 
 def main():

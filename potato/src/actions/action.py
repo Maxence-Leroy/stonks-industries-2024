@@ -6,8 +6,8 @@ from collections.abc import Callable, Awaitable
 from src.constants import MATCH_TIME
 from src.location.location import Location
 from src.logging import logging_info, logging_warning
-from src.robot import robot, RobotMovement
-from src.robot_actuator import RobotBinaryActuator
+from src.robot.robot import robot, RobotMovement
+from src.robot.robot_actuator import RobotBinaryActuator
 
 class ActionFailedException(Exception):
     """Generic class for handling action failures"""

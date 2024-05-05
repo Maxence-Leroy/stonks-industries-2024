@@ -1,6 +1,6 @@
 from src.actions.action import Action, MoveServoContinous, Switch, ActionsInParallel
 from src.constants import ID_SERVO_PLANT_LEFT, ID_SERVO_PLANT_MID, ID_SERVO_PLANT_RIGHT
-from src.robot import robot
+from src.robot.robot import robot
 
 def start_capturing_plants() -> Action:
     return MoveServoContinous(

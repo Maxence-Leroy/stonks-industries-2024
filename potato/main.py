@@ -10,7 +10,7 @@ from src.location.location import SideRelatedCoordinates, MoveForward
 from src.logging import logging_info, start, logging_error
 from src.playing_area import playing_area
 from src.replay.save_replay import start_replay, open_replay_file
-from src.robot import robot
+from src.robot.robot import robot
 from src.screen import screen
 
 def main():

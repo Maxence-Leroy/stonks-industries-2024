@@ -10,16 +10,16 @@ from src.constants import MATCH_TIME, D_STAR_FACTOR, PLAYING_AREA_WIDTH, PLAYING
 from src.d_star import DStarLight, State
 from src.helpers.pairwise import pairwise
 from src.playing_area import playing_area
-from src.robot_actuator import create_robot_binary_actuator
-from src.robot_stepper_motors import create_stepper_motors
-from src.robot_switch_reader import RobotSwitchReader
-from src.lidar import lidar, LidarDirection
+from src.robot.robot_actuator import create_robot_binary_actuator
+from src.robot.robot_stepper_motors import create_stepper_motors
+from src.robot.robot_switch_reader import RobotSwitchReader
+from src.robot.lidar import lidar, LidarDirection
 from src.location.location import AbsoluteCoordinates, SideRelatedCoordinates
 from src.logging import logging_debug, logging_info, logging_error
 from src.path_smoother import smooth_path
 from src.replay.base_classes import ReplayEvent, EventType
 from src.replay.save_replay import log_replay
-from src.robot.screen import screen
+from src.screen import screen
 from src.robot.sts3215 import STS3215
 
 class RobotMovement(Enum):
