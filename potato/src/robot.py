@@ -6,7 +6,7 @@ import threading
 import time
 from typing import Self, Optional
 
-from src.constants import MATCH_TIME, D_STAR_FACTOR, PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH, Side
+from src.constants import MATCH_TIME, D_STAR_FACTOR, PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH, Side, ID_SERVO_PLANT_LEFT, ID_SERVO_PLANT_MID, ID_SERVO_PLANT_RIGHT
 from src.d_star import DStarLight, State
 from src.helpers.pairwise import pairwise
 from src.playing_area import playing_area
@@ -95,7 +95,7 @@ class Robot:
 
         self.current_location = AbsoluteCoordinates(0, 0, 0)
         self.score = 0
-        self.servo_ids = []
+        self.servo_ids = [ID_SERVO_PLANT_LEFT, ID_SERVO_PLANT_MID, ID_SERVO_PLANT_RIGHT]
 
         self.sts3215 = STS3215()
 
@@ -114,8 +114,16 @@ class Robot:
             chip="gpiochip1", line=15, name="Ethernet LED"
         )
 
-        self.magnet = create_robot_binary_actuator(
-            chip="gpiochip1", line=83, name="Magnet"
+        self.magnet1 = create_robot_binary_actuator(
+            chip="gpiochip1", line=81, name="Magnet 1"
+        )
+
+        self.magnet2 = create_robot_binary_actuator(
+            chip="gpiochip1", line=82, name="Magnet 2"
+        )
+
+        self.magnet3 = create_robot_binary_actuator(
+            chip="gpiochip1", line=83, name="Magnet 3"
         )
 
         self.last_instruction = ""
@@ -307,7 +315,7 @@ class Robot:
             self.robot_movement = RobotMovement.IS_MOVING_BACKWARD if backwards else RobotMovement.IS_MOVING_FORWARD
 
     async def go_to(
-        self, x: float, y: float, theta: float, backwards: bool, forced_angle: bool, pathfinding: bool, on_the_spot: bool
+        self, x: float, y: float, theta: float, backwards: bool, forced_angle: bool, on_the_spot: bool, max_speed: int, max_acceleration: int, precision: int
     ) -> None:
         """Function to move to specific coordinates. Returns when the Arduino has sent "DONE"."""
         log_replay(
@@ -316,54 +324,13 @@ class Robot:
                 place=(x, y, theta)
             )
         )
-        if pathfinding:
-            start = time.time()
-            current_x = int(self.current_location.x / D_STAR_FACTOR)
-            current_y = int(self.current_location.y / D_STAR_FACTOR)
-
-            goal_x = int(x / D_STAR_FACTOR)
-            goal_y = int(y / D_STAR_FACTOR)
-
-            d_star = DStarLight(State(current_x, current_y), State(goal_x, goal_y), playing_area.cost)
-            d_star.compute_shortest_path(False)
-            path = d_star.get_path()
-            path_as_tuples = list(map(lambda x: (x.to_float()[0], x.to_float()[1]), path))
-            logging_info(f"Pathfinding found in {time.time() - start} seconds")
-            self.send_d_star_path(path_as_tuples, x, y, theta, backwards, forced_angle)
-            while self.robot_movement != RobotMovement.FINISH_MOVING:
-                if len(playing_area.obstacles_change) > 0:
-                    need_recompute = False
-                    obstacle_set: set[State] = set()
-                    for obstacle in playing_area.obstacles_change:
-                        for line in pairwise(path_as_tuples):
-                            if obstacle.zone_with_robot_size().intersect_with_line(line[0], line[1]):
-                                need_recompute = True
-                                obstacle_points = obstacle.zone_with_robot_size().points_in_zone()
-                                obstacle_coordinates = np.indices((int(PLAYING_AREA_WIDTH / D_STAR_FACTOR),int(PLAYING_AREA_DEPTH / D_STAR_FACTOR))).transpose((1,2,0))
-                                obstacle_state = State(obstacle_coordinates[obstacle_points][0], obstacle_coordinates[obstacle_points][1])
-                                obstacle_set.add(obstacle_state)
-                    if need_recompute:
-                        logging_info("Obstacle found, need to recompute path")
-                        self.stop_moving(RobotMovement.WAITING_RECOMPUTE)
-                        current_x = int(self.current_location.x / D_STAR_FACTOR)
-                        current_y = int(self.current_location.y / D_STAR_FACTOR)
-                        d_star.s_start = State(current_x, current_y)
-                        d_star.add_obstacles(list(obstacle_set))
-                        path = d_star.get_path()
-                        path_as_tuples = list(map(lambda x: (x.to_float()[0], x.to_float()[1]), path))
-                        self.send_d_star_path(path_as_tuples, x, y, theta, backwards, forced_angle)
-                else:
-                    await asyncio.sleep(0.2)
-            return
-        else:
-            logging_info("No pathfinding used")
-            instruction = f"({x};{y};{theta};{'1' if backwards else '0'};{'1' if forced_angle else '0'};{'1' if on_the_spot else '0'})\n"
-            self.last_instruction = instruction
-            self.robot_movement = RobotMovement.IS_MOVING_BACKWARD if backwards else RobotMovement.IS_MOVING_FORWARD
-            self.stepper_motors.write(instruction)
-            while self.robot_movement != RobotMovement.FINISH_MOVING: #type: ignore
-                await asyncio.sleep(0.2)
-            return
+        instruction = f"({x};{y};{theta};{'1' if backwards else '0'};{'1' if forced_angle else '0'};{'1' if on_the_spot else '0'};{max_speed};{max_acceleration};{'1' if precision else '0'})\n"
+        self.last_instruction = instruction
+        self.robot_movement = RobotMovement.IS_MOVING_BACKWARD if backwards else RobotMovement.IS_MOVING_FORWARD
+        self.stepper_motors.write(instruction)
+        while self.robot_movement != RobotMovement.FINISH_MOVING: #type: ignore
+            await asyncio.sleep(0.2)
+        return
 
 
 robot = Robot() # Singleton

@@ -310,6 +310,9 @@ class Move(Action):
         forced_angle: bool = False,
         on_the_spot: bool = False,
         backwards: bool = False,
+        max_speed: int = 100,
+        max_acceleration: int = 100,
+        precision: bool = False,
         timer_limit: float = MATCH_TIME,
         can_be_executed: Callable[[], bool] = lambda: True,
         affect_state: Callable[[], None] = lambda: None,
@@ -329,6 +332,15 @@ class Move(Action):
         backwards: bool
             If the robot must go backwards to go to this destination. Default false.
 
+        max_speed: int
+            Percentage of max speed of the robot. 100 by default
+
+        max_acceleration: int
+            Percentage of max acceleration of the robot. 100 by default
+
+        precision: bool
+            If the robot must arrive precisly at destination
+
         timer_limit: float
             Time limit to do the action (time counted since the begining of the match), `MATCH_TIME` by default
 
@@ -346,6 +358,9 @@ class Move(Action):
         self.forced_angle = forced_angle
         self.backwards = backwards
         self.on_the_spot = on_the_spot
+        self.max_speed = max_speed
+        self.max_acceleration = max_acceleration
+        self.precision = precision
 
     def __str__(self) -> str:
         return f"Move to {str(self.destination)} {super().__str__()}"
@@ -355,7 +370,7 @@ class Move(Action):
         if destination is None:
             raise GameElementNotAvailableException()
         (x, y, theta) = destination
-        await robot.go_to(x, y, theta, self.backwards, self.forced_angle, self.pathfinding, self.on_the_spot)
+        await robot.go_to(x, y, theta, self.backwards, self.forced_angle, self.on_the_spot, self.max_speed, self.max_acceleration, self.precision)
 
     execute: Callable[[Self], Awaitable[None]] = go_to_location
 

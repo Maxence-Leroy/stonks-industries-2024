@@ -1,7 +1,7 @@
 import asyncio
 import time
 
-from src.action import ActionsSequence, MoveServoTarget, MoveServoContinous, Wait
+from src.actions.action import ActionsSequence, MoveServoTarget, MoveServoContinous, Wait
 from src.constants import MATCH_TIME, Side, ROBOT_WIDTH, ROBOT_DEPTH
 from src.location.location import SideRelatedCoordinates
 from src.logging import logging_info, start, logging_error
@@ -11,16 +11,18 @@ from src.robot import robot
 
 def main():
     open_replay_file()
+    ids = [1, 3]
     playing_area.side = Side.BLUE
     strategy = ActionsSequence(
         timer_limit=MATCH_TIME,
         actions=[
-            MoveServoTarget([2], [0], False),
-            Wait(1),
-            MoveServoTarget([2], [4000], True),
-            MoveServoContinous([2], -1000),
+            #MoveServoTarget(ids, [0, 0], False),
+            #Wait(1),
+            #MoveServoTarget(ids, [4000, 4000], False),
+            #Wait(2),
+            MoveServoContinous(ids, -1000),
             Wait(5),
-            MoveServoContinous([2], 0)
+            MoveServoContinous(ids, 0)
         ],
         allows_fail=False
     )

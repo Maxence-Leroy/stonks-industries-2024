@@ -3,9 +3,10 @@ import math
 import time
 from typing import List
 
-from src.action import ActionsSequence, Move, MoveServoContinous, Wait
-from src.constants import MATCH_TIME, Side, ROBOT_WIDTH, ROBOT_DEPTH
-from src.location.location import RelativeMove, SideRelatedCoordinates, MoveForward
+from src.actions.action import ActionsSequence, Move, Wait
+from src.actions.generated_actions import *
+from src.constants import MATCH_TIME, Side, ROBOT_WIDTH, ROBOT_DEPTH, ID_SERVO_PLANT_RIGHT, ID_SERVO_PLANT_MID, ID_SERVO_PLANT_LEFT
+from src.location.location import SideRelatedCoordinates, MoveForward
 from src.logging import logging_info, start, logging_error
 from src.playing_area import playing_area
 from src.replay.save_replay import start_replay, open_replay_file
@@ -16,7 +17,6 @@ def main():
     logging_info("Starting")
     screen.show_robot_name_and_side(None)
     playing_area.side = Side.BLUE
-    robot.servo_ids = [7]
     open_replay_file()
 
     robot.wait_to_start()
@@ -24,10 +24,10 @@ def main():
     strategy = ActionsSequence(
         timer_limit=MATCH_TIME,
         actions= [
-            Move(SideRelatedCoordinates(500, 0, 0, playing_area.side)),
-            Move(SideRelatedCoordinates(500, 500, 0, playing_area.side)),
-            Move(SideRelatedCoordinates(0, 500, 0, playing_area.side)),
-            Move(SideRelatedCoordinates(0, 0, 0, playing_area.side), forced_angle=True)
+            Move(SideRelatedCoordinates(100, 0, 0, playing_area.side)),
+            start_capturing_plants(),
+            Move(SideRelatedCoordinates(200, 0, 0, playing_area.side), max_speed = 20),
+            stop_capturing_plants()
         ],
         allows_fail=False
     )

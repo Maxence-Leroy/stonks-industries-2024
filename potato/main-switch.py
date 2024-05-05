@@ -2,7 +2,7 @@ import asyncio
 import time
 import numpy as np
 
-from src.action import ActionsSequence, Move
+from src.actions.action import ActionsSequence, Move
 from src.constants import MATCH_TIME, Side, ROBOT_WIDTH, ROBOT_DEPTH
 from src.location.location import SideRelatedCoordinates, MoveForward
 from src.logging import logging_info, start, logging_error
