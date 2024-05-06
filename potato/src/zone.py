@@ -70,6 +70,9 @@ class Rectangle(Zone):
             min(PLAYING_AREA_DEPTH, self._y_max + robot_max_dimension)
         )
     
+    def center(self) -> tuple[float, float]:
+        return ((self._x_min + self._x_max) / 2, (self._y_min + self._y_max) / 2)
+    
     def points_in_zone(self) -> NDArray[Shape["60,40"], Bool]:
         array = np.full((int(PLAYING_AREA_WIDTH / D_STAR_FACTOR), int(PLAYING_AREA_DEPTH / D_STAR_FACTOR)), False)
         x_min = self.int_coordinates(self._x_min / D_STAR_FACTOR, Zone.Rounding.Minimum)

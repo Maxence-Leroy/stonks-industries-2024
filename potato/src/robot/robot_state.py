@@ -5,3 +5,5 @@ class RobotState():
         self.plants_mid = 0
         self.plants_right = 0
         self.plant_canal_running: list[int] = []
+        self.pots = 0
+        self.plants_in_pots = 0

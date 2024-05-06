@@ -1,6 +1,8 @@
 from enum import Enum
+import math
 from typing import Optional
 
+from src.constants import *
 from src.playing_area import playing_area
 from src.location.location import Location
 
@@ -46,14 +48,56 @@ class BestAvailable(Location):
     def getLocation(self, current_x: float, current_y: float, current_theta: float) -> Optional[tuple[float, float, float]]:
         match self.location:
             case ImportantLocation.POT:
-                return playing_area.get_closest_pot(current_x, current_y, current_theta)
+                closest_pot = playing_area.get_closest_pot(current_x, current_y, current_theta)
+                if closest_pot is None:
+                    return None
+                vector = (closest_pot.zone.x_center - current_x, closest_pot.zone.y_center - current_y)
+                norm = math.sqrt(vector[0] * vector[0] + vector[1] * vector[1])
+                normalized_vector = (vector[0] / norm, vector[1] / norm)
+                distance = norm - MARGIN__POT
+                new_vector = (distance * normalized_vector[0], distance * normalized_vector[1])
+                required_theta: float
+                if closest_pot.zone.x_center == 35:
+                    required_theta = 0
+                elif closest_pot.zone.y_center == 35:
+                    required_theta = math.pi/2
+                elif closest_pot.zone.x_center == 2965:
+                    required_theta = math.pi
+                else:
+                    required_theta = -math.pi/2
+
+                return (new_vector[0], new_vector[1], required_theta) 
+            
             case ImportantLocation.PLANT:
-                return playing_area.get_closest_plant(current_x, current_y, current_theta)
+                closest_plant = playing_area.get_closest_plant(current_x, current_y, current_theta)
+                if closest_plant is None:
+                    return None
+                vector = (closest_plant.zone.x_center - current_x, closest_plant.zone.y_center - current_y)
+                norm = math.sqrt(vector[0] * vector[0] + vector[1] * vector[1])
+                normalized_vector = (vector[0] / norm, vector[1] / norm)
+                distance = norm - MARGIN_PLANT
+                new_vector = (distance * normalized_vector[0], distance * normalized_vector[1])
+
+                return (new_vector[0], new_vector[1], 0)
+            
             case ImportantLocation.PLANTER:
-                return playing_area.get_best_planter(current_x, current_y, current_theta)
+                closest_planter = playing_area.get_best_planter(current_x, current_y, current_theta)
+                if closest_planter is None:
+                    return None
+                vector = (closest_planter.coordinates.x - current_x, closest_planter.coordinates.y - current_y)
+                norm = math.sqrt(vector[0] * vector[0] + vector[1] * vector[1])
+                normalized_vector = (vector[0] / norm, vector[1] / norm)
+                distance = norm - MARGIN_PLANTER - ROBOT_DEPTH / 2
+                new_vector = (distance * normalized_vector[0], distance * normalized_vector[1])
+                return (new_vector[0], new_vector[1], closest_planter.coordinates.theta) 
+                
             case ImportantLocation.SOLAR_PANNEL_BEGIN:
                 return playing_area.get_solar_pannel_begin()
             case ImportantLocation.SOLAR_PANNEL_END:
                 return playing_area.get_solar_pannel_end()
             case ImportantLocation.END_AREA:
-                return playing_area.get_end_area()
+                closest_end_area = playing_area.get_best_start_area(current_x, current_y, current_theta)
+                if closest_end_area is None:
+                    return None
+                center = closest_end_area.zone.center()
+                return (center[0], center[1], 0)

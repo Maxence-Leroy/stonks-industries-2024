@@ -10,6 +10,7 @@ class StartArea():
     is_reserved: bool
     zone: Rectangle
     side: Side
+    is_start_used_for_game: bool = False
 
 @dataclass
 class PlantArea():

@@ -66,6 +66,12 @@ class PlayingArea:
         ]
         self.other_robot = OtherRobot(Circle(PLAYING_AREA_WIDTH * 2, PLAYING_AREA_DEPTH * 2, 1200 / 8))
 
+    def set_used_start_area(self, current_x: float, current_y: float, current_theta: float) -> None:
+        start_area = self.get_best_start_area(current_x, current_y, current_theta)
+        if start_area is not None:
+            index = self.start_areas.index(start_area)
+            self.start_areas[index].is_start_used_for_game = True
+
     def compute_costs(self):
         self.cost = np.full((int(PLAYING_AREA_WIDTH / D_STAR_FACTOR), int(PLAYING_AREA_DEPTH /D_STAR_FACTOR)), 1.0)
         for start_area in self.start_areas:
@@ -87,7 +93,7 @@ class PlayingArea:
             self.obstacles_change.append(self.other_robot.zone.zone_with_robot_size())
             self.compute_costs()
 
-    def get_closest_pot(self, current_x: float, current_y: float, current_theta: float) -> Optional[tuple[float, float, float]]:
+    def get_closest_pot(self, current_x: float, current_y: float, current_theta: float) -> Optional[PotArea]:
         min_distance = np.inf
         min_arg: Optional[PotArea] = None
         for pot_area in self.pot_areas:
@@ -99,11 +105,9 @@ class PlayingArea:
         if min_arg is None:
             logging_warning("No pot found")
             return None
-        vector = (min_arg.zone.x_center - current_x, min_arg.zone.y_center - current_y)
-        theta = math.atan2(vector[1], vector[0])
-        return (min_arg.zone.x_center, min_arg.zone.y_center, theta)
+        return min_arg
 
-    def get_closest_plant(self, current_x: float, current_y: float, current_theta: float) -> Optional[tuple[float, float, float]]:
+    def get_closest_plant(self, current_x: float, current_y: float, current_theta: float) -> Optional[PlantArea]:
         min_distance = np.inf
         min_arg: Optional[PlantArea] = None
         for plant_area in self.plant_areas:
@@ -115,11 +119,9 @@ class PlayingArea:
         if min_arg is None:
             logging_warning("No plant found")
             return None
-        vector = (min_arg.zone.x_center - current_x, min_arg.zone.y_center - current_y)
-        theta = math.atan2(vector[1], vector[0])
-        return (min_arg.zone.x_center, min_arg.zone.y_center, theta)
+        return min_arg
 
-    def get_best_planter(self, current_x: float, current_y: float, current_theta: float) -> Optional[tuple[float, float, float]]:
+    def get_best_planter(self, current_x: float, current_y: float, current_theta: float) -> Optional[Planter]:
         min_distance = np.inf
         min_arg: Optional[Planter] = None
         for planter in self.planters:
@@ -131,13 +133,7 @@ class PlayingArea:
         if min_arg is None:
             logging_warning("No planter found")
             return None
-        x = min_arg.coordinates.x
-        y = min_arg.coordinates.y
-        theta = min_arg.coordinates.theta
-        x -= math.cos(theta) * ROBOT_DEPTH / 2
-        y -= math.sin(theta) * ROBOT_DEPTH / 2
-
-        return (x, y, theta)
+        return min_arg
 
     def get_solar_pannel_begin(self) -> tuple[float, float, float]:
         return (4, 4, 4)
@@ -145,8 +141,19 @@ class PlayingArea:
     def get_solar_pannel_end(self) -> tuple[float, float, float]:
         return (10, 10, 10)
 
-    def get_end_area(self) -> tuple[float, float, float]:
-        return (100, 100, 100)
+    def get_best_start_area(self, current_x: float, current_y: float, current_theta: float) -> Optional[StartArea]:
+        min_distance = np.inf
+        min_arg: Optional[StartArea] = None
+        for start_area in self.start_areas:
+            if start_area.side == playing_area.side and start_area.is_start_used_for_game == False:
+                distance = math.sqrt(math.pow(start_area.zone.center()[0] - current_x, 2) + math.pow(start_area.zone.center()[1] - current_y, 2))
+                if distance < min_distance:
+                    min_distance = distance
+                    min_arg = start_area
+        if min_arg is None:
+            logging_warning("No start_area found")
+            return None
+        return min_arg
     
 
 playing_area = PlayingArea() # Singleton

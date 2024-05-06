@@ -125,6 +125,18 @@ class Robot:
             chip="gpiochip1", line=83, name="Magnet 3"
         )
 
+        self.left_laser = create_robot_binary_actuator(
+            chip="gpiochip0", line=6, name="Left laser"
+        )
+
+        self.mid_laser = create_robot_binary_actuator(
+            chip="gpiochip0", line=9, name="Mid laser"
+        )
+
+        self.right_laser = create_robot_binary_actuator(
+            chip="gpiochip1", line=93, name="Right laser"
+        )
+
         self.last_instruction = ""
 
         # Always read the serial from stepper motors to update the robot's state

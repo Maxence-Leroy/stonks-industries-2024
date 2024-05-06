@@ -1,12 +1,10 @@
 import asyncio
-import math
 import time
-from typing import List
 
-from src.actions.action import ActionsSequence, Move, Wait
+from src.actions.action import ActionsSequence, Move
 from src.actions.generated_actions import *
-from src.constants import MATCH_TIME, Side, ROBOT_WIDTH, ROBOT_DEPTH, ID_SERVO_PLANT_RIGHT, ID_SERVO_PLANT_MID, ID_SERVO_PLANT_LEFT
-from src.location.location import SideRelatedCoordinates, MoveForward
+from src.constants import *
+from src.location.best_available import BestAvailable, ImportantLocation
 from src.logging import logging_info, start, logging_error
 from src.playing_area import playing_area
 from src.replay.save_replay import start_replay, open_replay_file
@@ -24,19 +22,19 @@ def main():
     strategy = ActionsSequence(
         timer_limit=MATCH_TIME,
         actions= [
-            start_magnets(),
-            Move(SideRelatedCoordinates(100, 0, 0, playing_area.side)),
-            start_capturing_plants(),
-            Move(SideRelatedCoordinates(300, 0, 0, playing_area.side), max_speed = 20, max_acceleration = 20),
-            Wait(20),
-            stop_capturing_plants(),
-            stop_magnets()
+            fetch_plants_and_put_them_in_planter(),
+            fetch_plants_and_put_them_in_planter(),
+            fetch_plants_and_put_them_in_planter(),
+            Move(
+                BestAvailable(ImportantLocation.END_AREA)
+            )
         ],
         allows_fail=False
     )
 
     logging_info(str(strategy))
 
+    playing_area.set_used_start_area(robot.current_location.x, robot.current_location.y, robot.current_location.theta)
     robot.start_time = time.time()
     start()
     start_replay()
