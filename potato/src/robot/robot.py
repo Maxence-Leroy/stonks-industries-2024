@@ -12,7 +12,7 @@ from src.robot.robot_actuator import create_robot_binary_actuator
 from src.robot.robot_stepper_motors import create_stepper_motors
 from src.robot.robot_switch_reader import create_switch_reader
 from src.robot.lidar import lidar, LidarDirection
-from src.location.location import AbsoluteCoordinates, SideRelatedCoordinates
+from src.location.location import AbsoluteCoordinates, SideRelatedCoordinates, MoveForward
 from src.logging import logging_debug, logging_info, logging_error
 from src.path_smoother import smooth_path
 from src.replay.base_classes import ReplayEvent, EventType
@@ -155,6 +155,7 @@ class Robot:
         Function to set up the side and position of the robot before the start of the game.
         Returns when the start switch changes its value
         """
+        last_position_change = time.time()
         while self.start_switch.get_value() is False:
             time.sleep(0.1)
             if self.side_switch.get_value() is True and playing_area.side is Side.BLUE:
@@ -162,11 +163,55 @@ class Robot:
                 self.set_initial_position(SideRelatedCoordinates(0, 0, 0, playing_area.side))
                 logging_info("Yellow side")
                 screen.show_robot_name_and_side(playing_area.side)
+                last_position_change = time.time()
             elif self.side_switch.get_value() is False and playing_area.side is Side.YELLOW:
                 playing_area.side = Side.BLUE
                 self.set_initial_position(SideRelatedCoordinates(0, 0, 0, playing_area.side))
                 logging_info("Blue side")
                 screen.show_robot_name_and_side(playing_area.side)
+                last_position_change = time.time()
+            
+            if time.time() - last_position_change > 10:
+                self.setup_initial_position()
+                last_position_change = time.time()
+
+    def setup_initial_position(self):
+        calibration_wait_time = 5
+        self.set_initial_position(SideRelatedCoordinates(100, 100, math.pi/2, playing_area.side))
+        time.sleep(0.1)
+        (x, y, theta) = (self.current_location.x, self.current_location.y, self.current_location.theta)
+        first_destination = MoveForward(-100).getLocation(x, y, theta)
+        if first_destination is None:
+            return
+        _ = self.go_to(first_destination[0], first_destination[1], first_destination[2], True, False, False, 10, 10, False)
+        time.sleep(calibration_wait_time)
+        self.stop_moving(RobotMovement.FINISH_MOVING)
+        self.set_initial_position(SideRelatedCoordinates(100, 0, math.pi/2, playing_area.side))
+
+        (x, y, theta) = (self.current_location.x, self.current_location.y, self.current_location.theta)
+        second_destination = SideRelatedCoordinates(100, 100, 0, playing_area.side).getLocation(x, y, theta)
+        if second_destination is None:
+            return
+        _ = self.go_to(second_destination[0], second_destination[1], second_destination[2], False, True, False, 30, 30, True)
+        time.sleep(calibration_wait_time)
+
+        (x, y, theta) = (self.current_location.x, self.current_location.y, self.current_location.theta)
+        third_destination = MoveForward(-100).getLocation(x, y, theta)
+        if third_destination is None:
+            return
+        _ = self.go_to(third_destination[0], third_destination[1], third_destination[2], True, False, False, 10, 10, False)
+        time.sleep(calibration_wait_time)
+        self.stop_moving(RobotMovement.FINISH_MOVING)
+        self.set_initial_position(SideRelatedCoordinates(0, 100, 0, playing_area.side))
+
+        (x, y, theta) = (self.current_location.x, self.current_location.y, self.current_location.theta)
+        fourth_destination = SideRelatedCoordinates(100, 100, 0, playing_area.side).getLocation(x, y, theta)
+        if fourth_destination is None:
+            return
+        _ = self.go_to(fourth_destination[0], fourth_destination[1], fourth_destination[2], False, True, False, 30, 30, True)
+        time.sleep(calibration_wait_time)
+
+
 
     def update_screen(self):
         """Fonction to update the content of the I2C screen with time and score"""
@@ -355,7 +400,7 @@ class Robot:
             self.robot_movement = RobotMovement.IS_MOVING_BACKWARD if backwards else RobotMovement.IS_MOVING_FORWARD
 
     async def go_to(
-        self, x: float, y: float, theta: float, backwards: bool, forced_angle: bool, on_the_spot: bool, max_speed: int, max_acceleration: int, precision: int
+        self, x: float, y: float, theta: float, backwards: bool, forced_angle: bool, on_the_spot: bool, max_speed: int, max_acceleration: int, precision: bool
     ) -> None:
         """Function to move to specific coordinates. Returns when the Arduino has sent "DONE"."""
         log_replay(

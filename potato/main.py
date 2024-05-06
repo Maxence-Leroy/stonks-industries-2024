@@ -1,10 +1,9 @@
 import asyncio
 import time
 
-from src.actions.action import ActionsSequence, Move
+from src.actions.action import ActionsSequence
 from src.actions.generated_actions import *
 from src.constants import *
-from src.location.best_available import BestAvailable, ImportantLocation
 from src.logging import logging_info, start, logging_error
 from src.playing_area import playing_area
 from src.replay.save_replay import start_replay, open_replay_file

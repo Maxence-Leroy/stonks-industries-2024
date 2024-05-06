@@ -27,9 +27,9 @@ class PlantCanal(Enum):
             return ID_SERVO_PLANT_RIGHT
         
 PLANT_DETECTION_THRESHOLD = 500
-MARGIN_PLANT = 0
-MARGIN__POT = 0
-MARGIN_PLANTER = 0
+MARGIN_PLANT = 200
+MARGIN__POT = 200
+MARGIN_PLANTER = 200
 
 class Side(Enum):
     BLUE = 0
