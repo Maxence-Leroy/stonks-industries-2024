@@ -44,3 +44,6 @@ def has_captured_plants() -> None:
         best_plant = next((plant for plant in playing_area.plant_areas if plant.zone.x_center == plant_coordinates[0] and plant.zone.y_center == plant_coordinates[1]), None)
         if best_plant is not None:
             best_plant.has_plants = False
+
+def has_arrived_in_end_area():
+    robot.state.score += 10

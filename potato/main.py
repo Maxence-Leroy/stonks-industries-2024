@@ -25,9 +25,7 @@ def main():
             fetch_plants_and_put_them_in_planter(),
             fetch_plants_and_put_them_in_planter(),
             fetch_plants_and_put_them_in_planter(),
-            Move(
-                BestAvailable(ImportantLocation.END_AREA)
-            )
+            go_to_end_area()
         ],
         allows_fail=False
     )

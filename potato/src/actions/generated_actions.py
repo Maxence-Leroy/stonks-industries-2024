@@ -171,3 +171,9 @@ def drop_plants_in_pot() -> Action:
         allows_fail=False,
         affect_state=has_dropped_plants
     )
+
+def go_to_end_area() -> Action:
+    return Move(
+        BestAvailable(ImportantLocation.END_AREA),
+        affect_state=has_arrived_in_end_area
+    )
