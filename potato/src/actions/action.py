@@ -565,3 +565,23 @@ class MoveServoContinous(Action):
         robot.sts3215.move_continuous(self.ids, self.speed)
 
     execute: Callable[[Self], Awaitable[None]] = move
+
+class CustomAction(Action):
+    def __init__(
+        self,
+        action_lambda: Callable[[], Awaitable[None]],
+        timer_limit: float = MATCH_TIME,
+        can_be_executed: Callable[[], bool] = lambda: True,
+        affect_state: Callable[[], None] = lambda: None,
+    ):
+        super().__init__(timer_limit, can_be_executed, affect_state)
+        self.action_lambda = action_lambda
+
+    def __str__(self) -> str:
+        description = "Custom action "
+        return description + super().__str__()
+
+    async def action(self) -> None:
+        await self.action_lambda()
+
+    execute: Callable[[Self], Awaitable[None]] = action

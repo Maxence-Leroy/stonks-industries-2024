@@ -6,13 +6,11 @@ import threading
 import time
 from typing import Self, Optional
 
-from src.constants import MATCH_TIME, D_STAR_FACTOR, PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH, Side, ID_SERVO_PLANT_LEFT, ID_SERVO_PLANT_MID, ID_SERVO_PLANT_RIGHT
-from src.d_star import DStarLight, State
-from src.helpers.pairwise import pairwise
+from src.constants import MATCH_TIME, D_STAR_FACTOR, Side, ID_SERVO_PLANT_LEFT, ID_SERVO_PLANT_MID, ID_SERVO_PLANT_RIGHT, PLANT_DETECTION_THRESHOLD, PlantCanal
 from src.playing_area import playing_area
 from src.robot.robot_actuator import create_robot_binary_actuator
 from src.robot.robot_stepper_motors import create_stepper_motors
-from src.robot.robot_switch_reader import RobotSwitchReader
+from src.robot.robot_switch_reader import create_switch_reader
 from src.robot.lidar import lidar, LidarDirection
 from src.location.location import AbsoluteCoordinates, SideRelatedCoordinates
 from src.logging import logging_debug, logging_info, logging_error
@@ -20,7 +18,8 @@ from src.path_smoother import smooth_path
 from src.replay.base_classes import ReplayEvent, EventType
 from src.replay.save_replay import log_replay
 from src.screen import screen
-from src.robot.sts3215 import STS3215
+from src.robot.sts3215 import create_sts3215
+from src.robot.robot_state import RobotState
 
 class RobotMovement(Enum):
     FINISH_MOVING = 0
@@ -94,16 +93,16 @@ class Robot:
         self.stepper_motors = create_stepper_motors()
 
         self.current_location = AbsoluteCoordinates(0, 0, 0)
-        self.score = 0
+        self.state = RobotState()
         self.servo_ids = [ID_SERVO_PLANT_LEFT, ID_SERVO_PLANT_MID, ID_SERVO_PLANT_RIGHT]
 
-        self.sts3215 = STS3215()
+        self.sts3215 = create_sts3215()
 
-        self.start_switch = RobotSwitchReader(
+        self.start_switch = create_switch_reader(
             chip="gpiochip1", line=97, name="Start switch"
         )
 
-        self.side_switch = RobotSwitchReader(
+        self.side_switch = create_switch_reader(
             chip="gpiochip1", line=96, name="Side switch"
         )
 
@@ -168,12 +167,12 @@ class Robot:
                 continue
             
             current_time = self.get_current_time()
-            if int(current_time) != int(previous_time) or previous_score != self.score:
-                previous_score = self.score
+            if int(current_time) != int(previous_time) or previous_score != self.state.score:
+                previous_score = self.state.score
                 previous_time = current_time
                 
                 try:
-                    screen.show_time_score(min(MATCH_TIME, current_time), self.score)
+                    screen.show_time_score(min(MATCH_TIME, current_time), self.state.score)
                 except Exception as ex:
                     logging_error(f"Error with screen: {ex}")
             
@@ -239,6 +238,19 @@ class Robot:
 
                 time.sleep(0.1)
 
+    def handle_plant_detection(self, detection_value: int, canal: PlantCanal):
+        if canal.servo_id() in self.state.plant_canal_running and detection_value > PLANT_DETECTION_THRESHOLD:
+            self.state.plant_canal_running.remove(canal.servo_id())
+            self.sts3215.move_continuous([canal.servo_id()], 0)
+            if canal == PlantCanal.LEFT:
+                self.state.plants_left += 1
+            elif canal == PlantCanal.MID:
+                self.state.plants_mid += 1
+            else:
+                self.state.plants_right += 1
+            
+
+
     def read_serial(self):
         """Read the serail from stepper motors. Will stop at the end of the match"""
         while self.start_time == 0 or self.get_current_time() <= MATCH_TIME:
@@ -249,7 +261,23 @@ class Robot:
                 pass
             elif res == "DONE":
                 self.robot_movement = RobotMovement.FINISH_MOVING
+            elif res.startswith("LL"):
+                # Laser detection
+                detections = res.split(";")
+                try:
+                    left = int(detections[0])
+                    mid = int(detections[1])
+                    right = int(detections[2])
+
+                    self.handle_plant_detection(left, PlantCanal.LEFT)
+                    self.handle_plant_detection(mid, PlantCanal.MID)
+                    self.handle_plant_detection(right, PlantCanal.RIGHT)
+
+                except Exception as ex:
+                    logging_error(f"Exception while parsing robot: {ex}")
+                    logging_error(f"With input {res}")
             else:
+                # Position update
                 res = res[1:-1] # Remove parenthesis
                 coordinates = res.split(";")
                 try:

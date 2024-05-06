@@ -14,8 +14,8 @@ class PotatoI2C(busio.I2C):
 class Screen:
     disp: Optional[adafruit_ssd1306.SSD1306_I2C]
     def __init__(self):
-        i2c = PotatoI2C(1)
         try:
+            i2c = PotatoI2C(1)
             self.disp = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
         except Exception as _:
             logging_error("Unable to start screen")

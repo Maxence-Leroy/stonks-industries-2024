@@ -1,8 +1,20 @@
+from abc import ABC, abstractmethod
 import asyncio
 import serial
 import time
 
-class STS3215:
+from src.constants import mock_robot
+
+class STS3215(ABC):
+    @abstractmethod
+    def move_continuous(self, ids: list[int], speed: int) -> None:
+        pass
+
+    @abstractmethod
+    async def move_to_position(self, ids: list[int], positions: list[int], wait_for_finish: bool) -> None:
+        pass
+
+class RealSTS3215(STS3215):
     CONTINOUS_MODE = 2
     DESTINATION_MODE = 0
 
@@ -105,7 +117,7 @@ class STS3215:
         self.last_command = full_command
         self.serial.write(full_command)
 
-    def move_continuous(self, ids: list[int], speed: int):
+    def move_continuous(self, ids: list[int], speed: int) -> None:
         """Move multiple servos in continuous mode. Speed can be between -1000 and 1000, 0 is stop."""
         for id in ids:
             self._set_mode(id, self.CONTINOUS_MODE)
@@ -133,3 +145,16 @@ class STS3215:
 
         await asyncio.sleep(0.1)
         return
+    
+class MockSTS3215(STS3215):
+    def move_continuous(self, ids: list[int], speed: int) -> None:
+        pass
+
+    async def move_to_position(self, ids: list[int], positions: list[int], wait_for_finish: bool) -> None:
+        pass
+
+def create_sts3215() -> STS3215:
+    if mock_robot:
+        return MockSTS3215()
+    else:
+        return RealSTS3215()

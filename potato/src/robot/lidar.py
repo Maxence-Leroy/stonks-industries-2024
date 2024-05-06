@@ -3,9 +3,8 @@ from typing import Optional
 import math
 from nptyping import NDArray, Float, Shape, Bool
 import numpy as np
-import ydlidar
 
-from src.constants import PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH
+from src.constants import PLAYING_AREA_WIDTH, PLAYING_AREA_DEPTH, mock_robot
 from src.logging import logging_error
 
 class LidarDirection(Enum):
@@ -13,33 +12,38 @@ class LidarDirection(Enum):
     FORWARD = 1
     BACKWARD = 2
 
+if not mock_robot:
+    import ydlidar
+
 class Lidar:
-    scan: Optional[ydlidar.LaserScan]
 
     def __init__(self):
-        ydlidar.os_init()
-        port = "/dev/ttyUSB0"
-        self.laser = ydlidar.CYdLidar()
-        self.laser.setlidaropt(ydlidar.LidarPropSerialPort, port)
-        self.laser.setlidaropt(ydlidar.LidarPropSerialBaudrate, 230400)
-        self.laser.setlidaropt(ydlidar.LidarPropLidarType, ydlidar.TYPE_TRIANGLE)
-        self.laser.setlidaropt(ydlidar.LidarPropDeviceType, ydlidar.YDLIDAR_TYPE_SERIAL)
-        self.laser.setlidaropt(ydlidar.LidarPropScanFrequency, 12.0)
-        self.laser.setlidaropt(ydlidar.LidarPropSampleRate, 5)
-        self.laser.setlidaropt(ydlidar.LidarPropSingleChannel, False)
-        self.laser.setlidaropt(ydlidar.LidarPropMaxAngle, 180.0)
-        self.laser.setlidaropt(ydlidar.LidarPropMinAngle, -180.0)
-        self.laser.setlidaropt(ydlidar.LidarPropMaxRange, 4.0)
-        self.laser.setlidaropt(ydlidar.LidarPropMinRange, 0.12)
-        self.laser.setlidaropt(ydlidar.LidarPropIntenstiy, True)
+        if not mock_robot:
+            ydlidar.os_init()
+            port = "/dev/ttyUSB0"
+            self.laser = ydlidar.CYdLidar()
+            self.laser.setlidaropt(ydlidar.LidarPropSerialPort, port)
+            self.laser.setlidaropt(ydlidar.LidarPropSerialBaudrate, 230400)
+            self.laser.setlidaropt(ydlidar.LidarPropLidarType, ydlidar.TYPE_TRIANGLE)
+            self.laser.setlidaropt(ydlidar.LidarPropDeviceType, ydlidar.YDLIDAR_TYPE_SERIAL)
+            self.laser.setlidaropt(ydlidar.LidarPropScanFrequency, 12.0)
+            self.laser.setlidaropt(ydlidar.LidarPropSampleRate, 5)
+            self.laser.setlidaropt(ydlidar.LidarPropSingleChannel, False)
+            self.laser.setlidaropt(ydlidar.LidarPropMaxAngle, 180.0)
+            self.laser.setlidaropt(ydlidar.LidarPropMinAngle, -180.0)
+            self.laser.setlidaropt(ydlidar.LidarPropMaxRange, 4.0)
+            self.laser.setlidaropt(ydlidar.LidarPropMinRange, 0.12)
+            self.laser.setlidaropt(ydlidar.LidarPropIntenstiy, True)
 
-        ret = self.laser.initialize()
-        if ret:
-            ret = self.laser.turnOn()
-            self.scan = ydlidar.LaserScan()
+            ret = self.laser.initialize()
+            if ret:
+                ret = self.laser.turnOn()
+                self.scan = ydlidar.LaserScan()
+            else:
+                logging_error("Unable to start lidar")
+                self.laser.disconnecting()
+                self.scan = None
         else:
-            logging_error("Unable to start lidar")
-            self.laser.disconnecting()
             self.scan = None
 
     def get_lidar_coordinates(self, points_with_angle: NDArray[Shape["360, 3"], Float], robot_x: float, robot_y: float, robot_theta: float) -> NDArray[Shape["360, 3"], Float]:

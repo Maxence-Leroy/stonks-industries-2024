@@ -1,7 +1,15 @@
+from abc import ABC, abstractmethod
 from typing import Optional
 import gpiod
 
-class RobotSwitchReader():
+from src.constants import mock_robot
+
+class RobotSwitchReader(ABC):
+    @abstractmethod
+    def get_value(self) -> bool:
+        raise NotImplementedError()
+
+class RealSwitchReader(RobotSwitchReader):
     """Read the state of a switch"""
     def __init__(self, chip: str, line: int, name: Optional[str]) -> None:
         self.name = name or f"{chip} line {line}"
@@ -19,3 +27,14 @@ class RobotSwitchReader():
     def get_value(self) -> bool:
         """Return true if the switch is on"""
         return self.line.get_value() == 1
+    
+class MockSwitchReader(RobotSwitchReader):
+    def get_value(self) -> bool:
+        return True
+
+
+def create_switch_reader(chip: str, line: int, name: Optional[str] = None) -> RobotSwitchReader:
+    if mock_robot:
+        return MockSwitchReader()
+    else:
+        return RealSwitchReader(chip, line, name)
