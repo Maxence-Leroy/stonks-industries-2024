@@ -569,7 +569,7 @@ class MoveServoContinous(Action):
 class CustomAction(Action):
     def __init__(
         self,
-        action_lambda: Callable[[], Awaitable[None]],
+        action_lambda: Callable[[], None],
         timer_limit: float = MATCH_TIME,
         can_be_executed: Callable[[], bool] = lambda: True,
         affect_state: Callable[[], None] = lambda: None,
@@ -582,6 +582,6 @@ class CustomAction(Action):
         return description + super().__str__()
 
     async def action(self) -> None:
-        await self.action_lambda()
+        self.action_lambda()
 
     execute: Callable[[Self], Awaitable[None]] = action

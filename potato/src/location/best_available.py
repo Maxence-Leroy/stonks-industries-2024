@@ -78,7 +78,7 @@ class BestAvailable(Location):
                 distance = norm - MARGIN_PLANT
                 new_vector = (distance * normalized_vector[0], distance * normalized_vector[1])
 
-                return (new_vector[0], new_vector[1], 0)
+                return (current_x + new_vector[0], current_y + new_vector[1], 0)
             
             case ImportantLocation.PLANTER:
                 closest_planter = playing_area.get_best_planter(current_x, current_y, current_theta)

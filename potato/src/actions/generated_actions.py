@@ -13,7 +13,7 @@ def fetch_plants_and_put_them_in_planter() -> Action:
                 actions= [
                     Move(BestAvailable(ImportantLocation.PLANT)),
                     start_capturing_plants(),
-                    Move(MoveForward(2 * MARGIN_PLANT), max_speed=33, max_acceleration=33),
+                    Move(MoveForward(2 * MARGIN_PLANT), max_speed=50),
                     Wait(3),
                     stop_capturing_plants(),
                 ],
@@ -68,7 +68,7 @@ def fetch_plants_and_put_them_in_planter() -> Action:
 
 def start_capturing_plants() -> Action:
     def action():
-        robot.stepper_motors.write("L Start")
+        robot.stepper_motors.write("L Start\n")
         robot.state.plant_canal_running = [ID_SERVO_PLANT_LEFT, ID_SERVO_PLANT_MID, ID_SERVO_PLANT_RIGHT]
 
     return ActionsInParallel(
@@ -97,7 +97,7 @@ def start_capturing_plants() -> Action:
 
 def stop_capturing_plants() -> Action:
     def action():
-        robot.stepper_motors.write("L Stop")
+        robot.stepper_motors.write("L Stop\n")
         robot.state.plant_canal_running = []
 
     return ActionsInParallel(

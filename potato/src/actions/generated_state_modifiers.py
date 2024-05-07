@@ -39,11 +39,10 @@ def drop_plants_in_planter() -> None:
 
 def has_captured_plants() -> None:
     robot_position = robot.current_location
-    plant_coordinates = playing_area.get_closest_plant(robot_position.x, robot_position.y, robot_position.theta)
-    if plant_coordinates is not None:
-        best_plant = next((plant for plant in playing_area.plant_areas if plant.zone.x_center == plant_coordinates[0] and plant.zone.y_center == plant_coordinates[1]), None)
-        if best_plant is not None:
-            best_plant.has_plants = False
+    plant_zone = playing_area.get_closest_plant(robot_position.x, robot_position.y, robot_position.theta)
+    if plant_zone is not None:
+        index = playing_area.plant_areas.index(plant_zone)
+        playing_area.plant_areas[index].has_plants = False
 
 def has_arrived_in_end_area():
     robot.state.score += 10
