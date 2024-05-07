@@ -18,7 +18,7 @@ from src.path_smoother import smooth_path
 from src.replay.base_classes import ReplayEvent, EventType
 from src.replay.save_replay import log_replay
 from src.screen import screen
-from src.robot.sts3215 import create_sts3215
+from src.robot.servos.create_servos import create_servos
 from src.robot.robot_state import RobotState
 
 class RobotMovement(Enum):
@@ -96,7 +96,7 @@ class Robot:
         self.state = RobotState()
         self.servo_ids = [ID_SERVO_PLANT_LEFT, ID_SERVO_PLANT_MID, ID_SERVO_PLANT_RIGHT]
 
-        self.sts3215 = create_sts3215()
+        (self.sts3215, self.scs0009) = create_servos()
 
         self.start_switch = create_switch_reader(
             chip="gpiochip1", line=97, name="Start switch"

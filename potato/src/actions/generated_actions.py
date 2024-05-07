@@ -87,7 +87,8 @@ def start_capturing_plants() -> Action:
             ),
             MoveServoContinous(
                 servo_ids = [ID_SERVO_PLANT_LEFT, ID_SERVO_PLANT_MID, ID_SERVO_PLANT_RIGHT],
-                speed = 1000
+                speed = 1000,
+                servo_type=ServoType.STS
             ),
             CustomAction(action_lambda=action)
         ],
@@ -116,7 +117,8 @@ def stop_capturing_plants() -> Action:
             ),
             MoveServoContinous(
                 servo_ids = [ID_SERVO_PLANT_LEFT, ID_SERVO_PLANT_MID, ID_SERVO_PLANT_RIGHT],
-                speed = 0
+                speed = 0,
+                servo_type=ServoType.STS
             ),
             CustomAction(action_lambda=action)
         ],
@@ -160,12 +162,14 @@ def drop_plants_in_pot() -> Action:
         actions=[
             MoveServoContinous(
                 servo_ids = [ID_SERVO_PLANT_LEFT, ID_SERVO_PLANT_MID, ID_SERVO_PLANT_RIGHT],
-                speed = 1000
+                speed = 1000,
+                servo_type=ServoType.STS
             ),
             Wait(5),
             MoveServoContinous(
                 servo_ids = [ID_SERVO_PLANT_LEFT, ID_SERVO_PLANT_MID, ID_SERVO_PLANT_RIGHT],
-                speed = 0   
+                speed = 0,
+                servo_type=ServoType.STS
             )
         ],
         allows_fail=False,

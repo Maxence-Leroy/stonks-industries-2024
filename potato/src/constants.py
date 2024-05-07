@@ -26,6 +26,10 @@ class PlantCanal(Enum):
         else:
             return ID_SERVO_PLANT_RIGHT
         
+class ServoType(Enum):
+    STS = 0
+    SCS = 1
+        
 PLANT_DETECTION_THRESHOLD = 500
 MARGIN_PLANT = 200
 MARGIN__POT = 200

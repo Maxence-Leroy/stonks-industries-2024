@@ -23,7 +23,7 @@ class STS3215:
         self.send_command(id, b'\x03', [b'\x05', new_id.to_bytes(1, 'little')])
 
     def move(self, id: int, position: int) -> None:
-        p = position.to_bytes(2, 'little', signed=True)
+        p = position.to_bytes(2, 'big', signed=True)
         self.send_command(id, b'\x03', [b'\x2A', p[0:1], p[1:2]])
 
     def speed_to_bytes(self, speed: int) -> bytes:
@@ -53,7 +53,7 @@ class STS3215:
         self.send_command(id, b'\x03', [b'\x21', mode.to_bytes(1, 'little')])
 
     def set_eeprom_lock(self, id: int, lock: bool) -> None:
-        self.send_command(id, b'\x03', [b'\x37', b'\x01' if lock else b'\x00'])
+        self.send_command(id, b'\x03', [b'\x30', b'\x01' if lock else b'\x00'])
 
     def get_voltage_limit(self, id: int) -> bytes:
         self.send_command(id, b'\x02', [b'\x0E', b'\x02'])
@@ -112,16 +112,10 @@ class STS3215:
 
 def change_id(sts: STS3215, old_id: int, new_id: int):
     sts.set_eeprom_lock(old_id, False)
-    print(sts.read_ignore_previous_command())
+    time.sleep(1)
     sts.change_id(old_id, new_id)
-    print(sts.read_ignore_previous_command())
+    time.sleep(1)
     sts.set_eeprom_lock(new_id, True)
-    print(sts.read_ignore_previous_command())
-    sts.move(new_id, 4000)
-    sts.read_ignore_previous_command()
-    time.sleep(2)
-    sts.move(new_id, 0)
-    sts.read_ignore_previous_command()
 
 def switch_to_continous_mode(sts: STS3215, id: int):
     sts.set_mode(id, 2)
@@ -158,15 +152,45 @@ def stop():
     sts.set_mode(1, 2)
     sts.set_speed_mutliples([1], 0)
 
+def init():
+    sts = STS3215()
+    sts.send_command(10, b'\x03', [b'\x09', b'\x00', b'\x00', b'\x00', b'\x00'])
+
 if __name__ == "__main__":
     sts = STS3215()
-    sts.set_mode(1, 2)
-    res = ""
-    while res != "q":
-        res = input()
-        try:
-            a = int(res)
-            sts.set_speed_mutliples([1], a)
-        except Exception:
-            pass
+    # init()
+    # time.sleep(4)
+
+    # sts.send_command(10, b'\x03', [b'\x028', b'\x01'])
+    # sts.move(10, 200)
+    # time.sleep(2)
+    # sts.move(10, 20)
+    new_id = 10
+
+    # print("Change id")
+    # change_id(sts, 1, new_id)
+    # time.sleep(5)
+
+    # print("Debrick")
+    # sts.set_eeprom_lock(new_id, False)
+    # time.sleep(0.5)
+    # sts.send_command(new_id, b'\x03', [b'\x12', b'\x01'])
+    # time.sleep(0.5)
+    # sts.set_eeprom_lock(new_id, True)
+    # time.sleep(5)
+
+    for dest in range(-1000, 1000, 20):
+        print(dest)
+        sts.move(new_id, dest)
+        time.sleep(0.3)
+
+
+    # print("Move 1")
+    # sts.move(new_id, 200)
+    # time.sleep(3)
+    # print("Move 2")
+    # sts.move(new_id, 2000)
+    # time.sleep(3)
+
+
 

@@ -3,38 +3,26 @@ import asyncio
 import serial
 import time
 
-from src.constants import mock_robot
 
-class STS3215(ABC):
+class Servo(ABC):
     @abstractmethod
-    def move_continuous(self, ids: list[int], speed: int) -> None:
-        pass
+    def _convert_16bits_to_bytes(self, value: int) -> bytes:
+        raise NotImplementedError()
+    
+    def _speed_to_bytes(self, speed: int) -> bytes:
+        """Convert a speed int (between -1023 and 1023)"""
+        raise NotImplementedError()
 
-    @abstractmethod
-    async def move_to_position(self, ids: list[int], positions: list[int], wait_for_finish: bool) -> None:
-        pass
-
-class RealSTS3215(STS3215):
     CONTINOUS_MODE = 2
     DESTINATION_MODE = 0
 
-    def __init__(self):
-        self.serial = serial.Serial(
-            port="/dev/ttyAML7",
-            baudrate=1000000,
-            timeout=10,
-            bytesize=serial.EIGHTBITS,
-            parity=serial.PARITY_NONE,
-            stopbits=serial.STOPBITS_ONE,
-            xonxoff=False,
-            rtscts=False,
-            dsrdtr=False
-        )
-        self.last_command = ""
+    def __init__(self, serial: serial.Serial):
+        self.serial = serial
+        self.last_command: bytes = b''
 
     def _move(self, id: int, position: int) -> None:
         """Move a servo to the given position"""
-        p = position.to_bytes(2, 'little', signed=True)
+        p = self._convert_16bits_to_bytes(position)
         self._send_command(id, b'\x03', [b'\x2A', p[0:1], p[1:2]])
         self._read_ignore_previous_command()
 
@@ -47,18 +35,12 @@ class RealSTS3215(STS3215):
 
         for i in range(0, len(ids)):
             parameters += [ids[i].to_bytes(1, 'little')]
-            p = positions[i].to_bytes(2, 'little', signed=True)
+            p = self._convert_16bits_to_bytes(positions[i])
             parameters += [p[0:1], p[1:2]]
         self._send_command(254, b'\x83', parameters)
         self._read_ignore_previous_command()
 
-    def _speed_to_bytes(self, speed: int) -> bytes:
-        """Convert a speed int (between -1023 and 1023)"""
-        if speed < 0:
-            s = (-speed + 1024).to_bytes(2, 'little')
-        else:
-            s = speed.to_bytes(2, 'little')
-        return s
+
 
     def _set_speed(self, id: int, speed: int) -> None:
         """Set speed in continuous mode for one servo"""
@@ -146,15 +128,3 @@ class RealSTS3215(STS3215):
         await asyncio.sleep(0.1)
         return
     
-class MockSTS3215(STS3215):
-    def move_continuous(self, ids: list[int], speed: int) -> None:
-        pass
-
-    async def move_to_position(self, ids: list[int], positions: list[int], wait_for_finish: bool) -> None:
-        pass
-
-def create_sts3215() -> STS3215:
-    if mock_robot:
-        return MockSTS3215()
-    else:
-        return RealSTS3215()
