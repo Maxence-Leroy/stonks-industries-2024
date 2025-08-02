@@ -1,9 +1,11 @@
 import asyncio
+import math
 import time
 
-from src.actions.action import ActionsSequence
+from src.actions.action import ActionsSequence, Move
 from src.actions.generated_actions import *
 from src.constants import *
+from src.location.location import MoveForward, SideRelatedCoordinates, RelativeMove
 from src.logging import logging_info, start, logging_error
 from src.playing_area import playing_area
 from src.replay.save_replay import start_replay, open_replay_file
@@ -11,12 +13,17 @@ from src.robot.robot import robot
 from src.screen import screen
 
 def main():
-    logging_info("Starting")
     screen.show_robot_name_and_side(None)
     playing_area.side = Side.BLUE
     open_replay_file()
 
+    logging_info("Starting")
+
+    robot.set_initial_position(SideRelatedCoordinates(100 + ROBOT_DEPTH / 2, 100 + ROBOT_DEPTH / 2, 0, playing_area.side))
     robot.wait_to_start()
+
+    logging_info("Ready to start")
+    time.sleep(5)
 
     strategy = ActionsSequence(
         timer_limit=MATCH_TIME,

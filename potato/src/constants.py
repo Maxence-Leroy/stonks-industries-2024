@@ -5,9 +5,9 @@ MATCH_TIME: int = 100 # Duration of a match
 PLAYING_AREA_WIDTH = 3000
 PLAYING_AREA_DEPTH = 2000
 D_STAR_FACTOR = 50
-ROBOT_WIDTH = 325
-ROBOT_DEPTH = 155
-mock_robot = True # Use real serial or mock it
+ROBOT_WIDTH = 280
+ROBOT_DEPTH = 240
+mock_robot = False # Use real serial or mock it
 
 ID_SERVO_PLANT_LEFT = 5
 ID_SERVO_PLANT_MID = 7
@@ -25,6 +25,10 @@ class PlantCanal(Enum):
             return ID_SERVO_PLANT_MID
         else:
             return ID_SERVO_PLANT_RIGHT
+        
+class ServoType(Enum):
+    STS = 0
+    SCS = 1
         
 PLANT_DETECTION_THRESHOLD = 500
 MARGIN_PLANT = 200

@@ -6,7 +6,7 @@ import threading
 import time
 from typing import Self, Optional
 
-from src.constants import MATCH_TIME, D_STAR_FACTOR, Side, ID_SERVO_PLANT_LEFT, ID_SERVO_PLANT_MID, ID_SERVO_PLANT_RIGHT, PLANT_DETECTION_THRESHOLD, PlantCanal
+from src.constants import *
 from src.playing_area import playing_area
 from src.robot.robot_actuator import create_robot_binary_actuator
 from src.robot.robot_stepper_motors import create_stepper_motors
@@ -18,7 +18,7 @@ from src.path_smoother import smooth_path
 from src.replay.base_classes import ReplayEvent, EventType
 from src.replay.save_replay import log_replay
 from src.screen import screen
-from src.robot.sts3215 import create_sts3215
+from src.robot.servos.create_servos import create_servos
 from src.robot.robot_state import RobotState
 
 class RobotMovement(Enum):
@@ -96,7 +96,7 @@ class Robot:
         self.state = RobotState()
         self.servo_ids = [ID_SERVO_PLANT_LEFT, ID_SERVO_PLANT_MID, ID_SERVO_PLANT_RIGHT]
 
-        self.sts3215 = create_sts3215()
+        (self.sts3215, self.scs0009) = create_servos()
 
         self.start_switch = create_switch_reader(
             chip="gpiochip1", line=97, name="Start switch"
@@ -156,61 +156,70 @@ class Robot:
         Returns when the start switch changes its value
         """
         last_position_change = time.time()
+        previous_init: Optional[Side] = None
         while self.start_switch.get_value() is False:
             time.sleep(0.1)
             if self.side_switch.get_value() is True and playing_area.side is Side.BLUE:
                 playing_area.side = Side.YELLOW
-                self.set_initial_position(SideRelatedCoordinates(0, 0, 0, playing_area.side))
+                self.set_initial_position(SideRelatedCoordinates(120, 100 + ROBOT_WIDTH / 2, 0, playing_area.side))
                 logging_info("Yellow side")
                 screen.show_robot_name_and_side(playing_area.side)
+                previous_init = None
                 last_position_change = time.time()
             elif self.side_switch.get_value() is False and playing_area.side is Side.YELLOW:
                 playing_area.side = Side.BLUE
-                self.set_initial_position(SideRelatedCoordinates(0, 0, 0, playing_area.side))
+                self.set_initial_position(SideRelatedCoordinates(120, 100 + ROBOT_WIDTH / 2, 0, playing_area.side))
                 logging_info("Blue side")
                 screen.show_robot_name_and_side(playing_area.side)
                 last_position_change = time.time()
+                previous_init = None
             
-            if time.time() - last_position_change > 10:
-                self.setup_initial_position()
+            if time.time() - last_position_change > 10 and playing_area.side != previous_init:
+                #self.setup_initial_position()
+                previous_init = playing_area.side
                 last_position_change = time.time()
 
     def setup_initial_position(self):
+        logging_info("Setup position")
         calibration_wait_time = 5
-        self.set_initial_position(SideRelatedCoordinates(100, 100, math.pi/2, playing_area.side))
+        self.set_initial_position(SideRelatedCoordinates(100 + ROBOT_DEPTH / 2, 100 + ROBOT_DEPTH / 2, math.pi/2, playing_area.side))
         time.sleep(0.1)
         (x, y, theta) = (self.current_location.x, self.current_location.y, self.current_location.theta)
-        first_destination = MoveForward(-100).getLocation(x, y, theta)
+        first_destination = MoveForward(-110).getLocation(x, y, theta)
+        print(first_destination)
         if first_destination is None:
             return
-        _ = self.go_to(first_destination[0], first_destination[1], first_destination[2], True, False, False, 10, 10, False)
+        asyncio.run(self.go_to(first_destination[0], first_destination[1], first_destination[2], True, False, False, 10, 10, False))
         time.sleep(calibration_wait_time)
         self.stop_moving(RobotMovement.FINISH_MOVING)
-        self.set_initial_position(SideRelatedCoordinates(100, 0, math.pi/2, playing_area.side))
+        self.set_initial_position(SideRelatedCoordinates(100 + ROBOT_DEPTH / 2, ROBOT_DEPTH / 2, math.pi/2, playing_area.side))
 
         (x, y, theta) = (self.current_location.x, self.current_location.y, self.current_location.theta)
-        second_destination = SideRelatedCoordinates(100, 100, 0, playing_area.side).getLocation(x, y, theta)
+        second_destination = SideRelatedCoordinates(100 + ROBOT_DEPTH / 2, 100 + ROBOT_DEPTH / 2, 0, playing_area.side).getLocation(x, y, theta)
+        print(second_destination)
         if second_destination is None:
             return
-        _ = self.go_to(second_destination[0], second_destination[1], second_destination[2], False, True, False, 30, 30, True)
-        time.sleep(calibration_wait_time)
+        asyncio.run(self.go_to(second_destination[0], second_destination[1], second_destination[2], False, True, False, 10, 10, True))
+        time.sleep(2*calibration_wait_time)
 
         (x, y, theta) = (self.current_location.x, self.current_location.y, self.current_location.theta)
-        third_destination = MoveForward(-100).getLocation(x, y, theta)
+        third_destination = MoveForward(-110).getLocation(x, y, theta)
+        print(third_destination)
         if third_destination is None:
             return
-        _ = self.go_to(third_destination[0], third_destination[1], third_destination[2], True, False, False, 10, 10, False)
+        asyncio.run(self.go_to(third_destination[0], third_destination[1], third_destination[2], True, False, False, 10, 10, False))
         time.sleep(calibration_wait_time)
         self.stop_moving(RobotMovement.FINISH_MOVING)
-        self.set_initial_position(SideRelatedCoordinates(0, 100, 0, playing_area.side))
+        self.set_initial_position(SideRelatedCoordinates(ROBOT_DEPTH / 2, 100 + ROBOT_DEPTH / 2, 0, playing_area.side))
 
         (x, y, theta) = (self.current_location.x, self.current_location.y, self.current_location.theta)
-        fourth_destination = SideRelatedCoordinates(100, 100, 0, playing_area.side).getLocation(x, y, theta)
+        fourth_destination = SideRelatedCoordinates(100 + ROBOT_DEPTH / 2, 100 + ROBOT_DEPTH / 2, 0, playing_area.side).getLocation(x, y, theta)
+        print(fourth_destination)
         if fourth_destination is None:
             return
-        _ = self.go_to(fourth_destination[0], fourth_destination[1], fourth_destination[2], False, True, False, 30, 30, True)
+        asyncio.run(self.go_to(fourth_destination[0], fourth_destination[1], fourth_destination[2], False, True, False, 10, 10, True))
         time.sleep(calibration_wait_time)
-
+        logging_info("End setup position")
 
 
     def update_screen(self):
@@ -322,9 +331,9 @@ class Robot:
                 # Laser detection
                 detections = res.split(";")
                 try:
-                    left = int(detections[0])
-                    mid = int(detections[1])
-                    right = int(detections[2])
+                    left = int(detections[0][2:])
+                    mid = int(detections[1][2:])
+                    right = int(detections[2][2:])
 
                     self.handle_plant_detection(left, PlantCanal.LEFT)
                     self.handle_plant_detection(mid, PlantCanal.MID)
@@ -409,6 +418,7 @@ class Robot:
                 place=(x, y, theta)
             )
         )
+        logging_info(f"Go to {x};{y};{theta}")
         instruction = f"({x};{y};{theta};{'1' if backwards else '0'};{'1' if forced_angle else '0'};{'1' if on_the_spot else '0'};{max_speed};{max_acceleration};{'1' if precision else '0'})\n"
         self.last_instruction = instruction
         self.robot_movement = RobotMovement.IS_MOVING_BACKWARD if backwards else RobotMovement.IS_MOVING_FORWARD

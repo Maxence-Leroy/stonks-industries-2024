@@ -3,11 +3,12 @@ from enum import Enum
 from typing import Self
 from collections.abc import Callable, Awaitable
 
-from src.constants import MATCH_TIME
+from src.constants import *
 from src.location.location import Location
 from src.logging import logging_info, logging_warning
 from src.robot.robot import robot, RobotMovement
 from src.robot.robot_actuator import RobotBinaryActuator
+from src.robot.servos.servo import Servo
 
 class ActionFailedException(Exception):
     """Generic class for handling action failures"""
@@ -476,6 +477,7 @@ class MoveServoTarget(Action):
         servo_ids: list[int],
         positions: list[int],
         wait_for_finish: bool,
+        servo_type: ServoType,
         timer_limit: float = MATCH_TIME,
         can_be_executed: Callable[[], bool] = lambda: True,
         affect_state: Callable[[], None] = lambda: None,
@@ -507,6 +509,7 @@ class MoveServoTarget(Action):
         self.ids = servo_ids
         self.positions = positions
         self.wait_for_finish = wait_for_finish
+        self.servo_type = servo_type
 
     def __str__(self) -> str:
         description = "Move "
@@ -515,7 +518,12 @@ class MoveServoTarget(Action):
         return description + super().__str__()
 
     async def move(self) -> None:
-        await robot.sts3215.move_to_position(self.ids, self.positions, self.wait_for_finish)
+        servo_instance: Servo
+        if self.servo_type == ServoType.STS:
+            servo_instance = robot.sts3215
+        else:
+            servo_instance = robot.scs0009
+        await servo_instance.move_to_position(self.ids, self.positions, self.wait_for_finish)
 
     execute: Callable[[Self], Awaitable[None]] = move
 
@@ -526,6 +534,7 @@ class MoveServoContinous(Action):
         self,
         servo_ids: list[int],
         speed: int,
+        servo_type: ServoType,
         timer_limit: float = MATCH_TIME,
         can_be_executed: Callable[[], bool] = lambda: True,
         affect_state: Callable[[], None] = lambda: None,
@@ -553,6 +562,7 @@ class MoveServoContinous(Action):
         super().__init__(timer_limit, can_be_executed, affect_state)
         self.ids = servo_ids
         self.speed = speed
+        self.servo_type = servo_type
 
     def __str__(self) -> str:
         description = "Move servos "
@@ -562,14 +572,19 @@ class MoveServoContinous(Action):
         return description + super().__str__()
 
     async def move(self) -> None:
-        robot.sts3215.move_continuous(self.ids, self.speed)
+        servo_instance: Servo
+        if self.servo_type == ServoType.STS:
+            servo_instance = robot.sts3215
+        else:
+            servo_instance = robot.scs0009
+        servo_instance.move_continuous(self.ids, self.speed)
 
     execute: Callable[[Self], Awaitable[None]] = move
 
 class CustomAction(Action):
     def __init__(
         self,
-        action_lambda: Callable[[], Awaitable[None]],
+        action_lambda: Callable[[], None],
         timer_limit: float = MATCH_TIME,
         can_be_executed: Callable[[], bool] = lambda: True,
         affect_state: Callable[[], None] = lambda: None,
@@ -582,6 +597,6 @@ class CustomAction(Action):
         return description + super().__str__()
 
     async def action(self) -> None:
-        await self.action_lambda()
+        self.action_lambda()
 
     execute: Callable[[Self], Awaitable[None]] = action

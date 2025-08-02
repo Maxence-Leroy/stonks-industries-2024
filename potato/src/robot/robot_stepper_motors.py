@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import serial
 
 from src.constants import MATCH_TIME, mock_robot
-from src.logging import logging_debug
+from src.logging import logging_debug, logging_error
 
 class RobotStepperMotors(ABC):
     """Abstract class to define stepper motors actions"""
@@ -39,9 +39,13 @@ class SerialStepperMotors(RobotStepperMotors):
         self.serial.flush()
 
     def read(self) -> str:
-        res = self.serial.read_until(b"\n").decode()
-        res = res.strip("\n")
-        return res
+        try:
+            res = self.serial.read_until(b"\n").decode()
+            res = res.strip("\n")
+            return res
+        except Exception as ex:
+            logging_error("Parse error")
+            return ""
 
 class MockStepperMotors(RobotStepperMotors):
     """Mock class for stepper motors. To be used when executing the strategy without the potato computer"""
