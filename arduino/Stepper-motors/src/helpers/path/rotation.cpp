@@ -23,6 +23,13 @@ Rotation::Rotation(double x, double y, Angle startTheta, Angle endTheta, double 
   double accelerationAngle = 0.5*mMaxAcceleration*pow(accelerationDuration, 2);
   double totalAngle = fabs((mEndTheta-mStartTheta).toDouble());
 
+  Serial.print("accelerationDuration ");
+  Serial.print(accelerationDuration);
+  Serial.print(" accelerationAngle ");
+  Serial.print(accelerationAngle);
+  Serial.print(" total angle ");
+  Serial.println(totalAngle);
+
   if(2* accelerationAngle >totalAngle)
   {
     // Small rotation, we don't have time to reach max speed
@@ -34,6 +41,9 @@ Rotation::Rotation(double x, double y, Angle startTheta, Angle endTheta, double 
     mEndAccelerationTime = accelerationDuration * SEC_TO_MICROS_MULTIPLICATOR;
     mStartDeccelerationTime = mEndAccelerationTime;
     mExpectedDuration = mStartDeccelerationTime + accelerationDuration * SEC_TO_MICROS_MULTIPLICATOR;
+    Serial.print("Small rotation");
+    Serial.print("expectedDuration ");
+    Serial.println(mExpectedDuration);
   }
   else
   {
@@ -43,6 +53,9 @@ Rotation::Rotation(double x, double y, Angle startTheta, Angle endTheta, double 
     mEndAccelerationTime = accelerationDuration * SEC_TO_MICROS_MULTIPLICATOR;
     mStartDeccelerationTime = mEndAccelerationTime + SEC_TO_MICROS_MULTIPLICATOR * mAngleWithConstantSpeed / mMaxSpeed;
     mExpectedDuration = mStartDeccelerationTime + accelerationDuration * SEC_TO_MICROS_MULTIPLICATOR;
+    Serial.print("Big rotation");
+    Serial.print("expectedDuration ");
+    Serial.println(mExpectedDuration);
   }
 }
 
@@ -64,30 +77,42 @@ double Rotation::positionError(double x, double y, Angle theta, long time)
 
 double Rotation::rotationError(double x, double y, Angle theta, long time)
 {
+  Serial.print("time ");
+  Serial.print(time);
+  Serial.print(" startTime ");
+  Serial.print(mStartTime);
+  Serial.print(" ");
+
   long ellapsedTime = time - mStartTime;
   if(ellapsedTime < 0)
   {
+    Serial.print(" 1 ");
     return (mStartTheta-theta).toDouble();
   }
   else if(0 < ellapsedTime && ellapsedTime < mEndAccelerationTime)
   {
+    Serial.print(" 2 ");
     Angle expectedTheta = mStartTheta + 0.5* mDirection * mMaxAcceleration *pow((ellapsedTime) * MICROS_TO_SEC_MULTIPLICATOR, 2);
     return (expectedTheta-theta).toDouble();
   }
   else if(mEndAccelerationTime < ellapsedTime && ellapsedTime < mStartDeccelerationTime)
   {
+    Serial.print(" 3 ");
     Angle expectedTheta = mStartTheta + mDirection *(mAngleForAcceleration + (ellapsedTime-mEndAccelerationTime)*MICROS_TO_SEC_MULTIPLICATOR * mMaxSpeed);
     return (expectedTheta-theta).toDouble();
   }
   else if(mStartDeccelerationTime < ellapsedTime && ellapsedTime < mExpectedDuration)
   {
+    Serial.print(" 4 ");
     Angle expectedTheta = mEndTheta - 0.5*mDirection*mMaxAcceleration*pow((mExpectedDuration-ellapsedTime)* MICROS_TO_SEC_MULTIPLICATOR, 2);
     return (expectedTheta-theta).toDouble();
   }
   else
   {
+    Serial.print(" 5 ");
     return (mEndTheta-theta).toDouble();
   }
+  Serial.println(" ");
 }
 
 bool Rotation::needsPrecision() const {

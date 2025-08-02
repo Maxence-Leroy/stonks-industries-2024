@@ -1,6 +1,8 @@
 #include <Arduino.h>
 
 #include "helpers/robotConfig.h"
+
+#include "helpers/destination.h"
 #include "helpers/path/line.h"
 #include "helpers/path/rotation.h"
 #include "helpers/path/stayOnPoint.h"
@@ -27,8 +29,8 @@ void setup()
   Serial2.begin(115200); // Connection with the potato
   setupMotors();
   setupIncrementalEncoders();
-  setInitialPosition(0, 0, Angle(0));
-  setCurrentPath(new StayOnPoint(0, 0, 0));
+  setInitialPosition(1076.45, 726.98, Angle(0.40));
+  setCurrentPath(new StayOnPoint(1076.45, 726.98, 0.40));
   getCurrentPath()->start();
   setLeftMotorSpeed(0);
   setRightMotorSpeed(0);
@@ -40,13 +42,15 @@ void setup()
 
 void loop()
 {
-  // if(!hasChangedPath && micros() > 2 * SEC_TO_MICROS_MULTIPLICATOR) {
-  //   hasChangedPath = true;
-  //   addDestination(new Destination(500, 0, 0, false, false, false));
-  //   addDestination(new Destination(500, 500, 0, false, false, false));
-  //   addDestination(new Destination(0, 500, 0, false, false, false));
-  //   addDestination(new Destination(0, 0, 0, false, true, false));
-  // }
+  if(!hasChangedPath && micros() > 2 * SEC_TO_MICROS_MULTIPLICATOR) {
+    hasChangedPath = true;
+    addDestination(new Destination(717.16, 317.84, 2.36, false, true, false, 100, 100, true));
+
+    // addDestination(new Destination(100, 0, 0, false, false, false, 100, 100, true));
+    // addDestination(new Destination(100, 100, 0, false, false, false, 100, 100, true));
+    // addDestination(new Destination(0, 100, 0, false, false, false, 100, 100, true));
+    // addDestination(new Destination(0, 0, 0, false, true, false, 100, 100, true));
+  }
   if(Serial2.available() > 0) 
   {
     command = Serial2.readStringUntil('\n');
@@ -94,9 +98,8 @@ void loop()
   Path* currentPath = getCurrentPath();
   double positionError = currentPath->positionError(getCurrentX(), getCurrentY(), getCurrentTheta(), currentTime);
   double rotationError = currentPath->rotationError(getCurrentX(), getCurrentY(), getCurrentTheta(), currentTime);
-  if(currentPath->isOver(currentTime) && (!currentPath->needsPrecision() || ((positionError) < ERROR_MARGIN_POS && abs(rotationError) < ERROR_MARGIN_ROT)))
+  if(currentPath->isOver(currentTime) && abs(positionError) < ERROR_MARGIN_POS && abs(rotationError) < ERROR_MARGIN_ROT)
   {
-    Serial.println("Get next path");
     Path* nextPath = getNextPath();
     if(nextPath)
     {

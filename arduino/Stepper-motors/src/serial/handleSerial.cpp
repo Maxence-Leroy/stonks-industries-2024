@@ -104,6 +104,16 @@ void handleStopCommand()
     setCurrentPath(new StayOnPoint(getCurrentX(), getCurrentY(), getCurrentTheta()));
 }
 
+void handleCutCommand()
+{
+    if(LOGGING)
+    {
+        Serial.println("Cut command");
+    }
+    stopMotors();
+    clearQueue();
+}
+
 void handlePIDCommand(String command)
 {
     command = command.substring(4);

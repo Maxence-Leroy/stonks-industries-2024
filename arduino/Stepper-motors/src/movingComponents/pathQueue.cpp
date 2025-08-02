@@ -13,8 +13,8 @@ Queue<Destination>* destinationQueue = new Queue<Destination>();
 
 const double maxSpeedLine = 450;
 const double maxAccelerationLine = 1100;
-const double maxSpeedRotation = 4;
-const double maxAccelerationRotation = 8;
+const double maxSpeedRotation = 3;
+const double maxAccelerationRotation = 6;
 
 void addDestination(Destination* destination)
 {

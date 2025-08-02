@@ -124,7 +124,7 @@ double Line::positionError(double x, double y, Angle theta, long time)
 double Line::rotationError(double x, double y, Angle theta, long time)
 {
   // Conversion from perpendicular error to an angle
-  const double ANGLE_ERROR_COEFFICIENT = M_PI_4 / (mMaxSpeed * 40);
+  const double ANGLE_ERROR_COEFFICIENT = M_PI_4 / (mMaxSpeed * 30);
   long ellapsedTime = time - mStartTime;
 
   double baseRotationError = (mTheta-theta).toDouble();
