@@ -26,6 +26,12 @@ def main():
         if y2 < y1:
             angle = -angle
         print(angle * 180 / math.pi)
+        px_size = math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1))
+        mm_size = 30.0
+        gsd = mm_size / px_size
+        coefficient = 0.001719890754
+        distance = gsd / coefficient
+        print(distance)
         markers = cv2.aruco.drawDetectedMarkers(outputImage, corners, ids)
         cv2.imshow("toto", markers)
         cv2.waitKey(0)
